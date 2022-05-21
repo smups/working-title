@@ -17,8 +17,29 @@
   along with srvr.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/*
-  This file contains
-*/
+use super::*;
 
-pub mod mc_dtypes;
+#[derive(Debug, Clone, Copy)]
+pub struct MCInt(i32);
+
+impl MCDataType for MCInt {
+
+  fn decode(buf: &[u8]) -> Result<MCInt, Err> {
+    Ok(MCInt(i32::from_be_bytes([buf[0], buf[1], buf[2], buf[3]])))
+  }
+
+  fn encode(&self, buf: &mut [u8]) {
+    i32::to_be_bytes((*self).into())
+      .iter()
+      .enumerate()
+      .for_each(|(index, byte)| buf[index] = *byte);
+  }
+}
+
+impl From<i32> for MCInt{
+  fn from(val: i32) -> Self {MCInt(val)}
+}
+
+impl From<MCInt> for i32 {
+  fn from(val: MCInt) -> Self {val.0}
+}

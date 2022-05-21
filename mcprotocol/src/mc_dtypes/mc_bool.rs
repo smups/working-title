@@ -17,8 +17,33 @@
   along with srvr.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/*
-  This file contains
-*/
+use super::*;
 
-pub mod mc_dtypes;
+#[derive(Debug, Clone, Copy)]
+pub struct MCBool(bool);
+
+impl MCDataType for MCBool {
+
+  fn decode(buf: &[u8]) -> Result<MCBool, Err> {
+    match buf[0] {
+      0x00 => Ok(MCBool(true)),
+      0x01 => Ok(MCBool(false)),
+      _ => Err(MCDataTypeDecodeError("incorrect boolean encountered".to_string()))
+    }
+  }
+
+  fn encode(&self, buf: &mut [u8]) {
+    match (*self).into() {
+      false => buf[0] = 0x00,
+      true => buf[1] = 0x01
+    }
+  }
+}
+
+impl From<bool> for MCBool{
+  fn from(val: bool) -> Self {MCBool(val)}
+}
+
+impl From<MCBool> for bool {
+  fn from(val: MCBool) -> Self {val.0}
+}

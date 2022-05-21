@@ -17,8 +17,32 @@
   along with srvr.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/*
-  This file contains
-*/
+use super::*;
 
-pub mod mc_dtypes;
+#[derive(Debug, Clone, Copy)]
+pub struct MCLong(i64);
+
+impl MCDataType for MCLong {
+
+  fn decode(buf: &[u8]) -> Result<MCLong, Err> {
+    Ok(MCLong(i64::from_be_bytes([
+      buf[0], buf[1], buf[2], buf[3],
+      buf[4], buf[5], buf[6], buf[7]
+      ])))
+  }
+
+  fn encode(&self, buf: &mut [u8]) {
+    i64::to_be_bytes((*self).into())
+      .iter()
+      .enumerate()
+      .for_each(|(index, byte)| buf[index] = *byte);
+  }
+}
+
+impl From<i64> for MCLong{
+  fn from(val: i64) -> Self {MCLong(val)}
+}
+
+impl From<MCLong> for i64 {
+  fn from(val: MCLong) -> Self {val.0}
+}

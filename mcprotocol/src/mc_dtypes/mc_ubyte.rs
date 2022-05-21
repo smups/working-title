@@ -17,8 +17,29 @@
   along with srvr.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/*
-  This file contains
-*/
+use super::*;
 
-pub mod mc_dtypes;
+#[derive(Debug, Clone, Copy)]
+pub struct MCUByte(u8);
+
+impl MCDataType for MCUByte {
+
+  fn decode(buf: &[u8]) -> Result<MCUByte, Err> {
+    Ok(MCUByte(u8::from_be_bytes([buf[0]])))
+  }
+
+  fn encode(&self, buf: &mut [u8]) {
+    u8::to_be_bytes((*self).into())
+      .iter()
+      .enumerate()
+      .for_each(|(index, byte)| buf[index] = *byte);
+  }
+}
+
+impl From<u8> for MCUByte{
+  fn from(val: u8) -> Self {MCUByte(val)}
+}
+
+impl From<MCUByte> for u8 {
+  fn from(val: MCUByte) -> Self {val.0}
+}
