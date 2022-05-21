@@ -2,5 +2,6 @@
 members = [
     "srvr",
     "srvr-sysplugin",
-    "sample-plugin"
+    "sample-plugin",
+    "mcprotocol"
 ]
