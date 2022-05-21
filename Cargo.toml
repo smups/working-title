@@ -1,0 +1,6 @@
+[workspace]
+members = [
+    "srvr",
+    "srvr-sysplugin",
+    "sample-plugin"
+]
