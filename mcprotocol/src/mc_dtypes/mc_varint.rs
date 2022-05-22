@@ -58,17 +58,20 @@ impl MCDataType for MCVarInt {
     let mut val = u32::from_ne_bytes(self.0.to_ne_bytes());
     const U32_BITMASK: u32 = u32::from_ne_bytes(CONTINUE_BIT_MASK.to_ne_bytes());
 
-    loop {
-      if (val & U32_BITMASK) == 0 {
-        buf.write_byte(val.to_le_bytes()[0]); //least significant byte
-        return;
-      }
+    let mut has_next_byte = true;
 
-      buf.write_byte(
-        (val & !U32_BITMASK | U32_BITMASK).to_le_bytes()[0]
-      );
+    while has_next_byte {
+      let mut next_byte = (val & !U32_BITMASK) as u8;
 
       val >>= 7;
+
+      has_next_byte = val != 0;
+
+      if has_next_byte {
+        next_byte |= U32_BITMASK as u8;
+      }
+
+      buf.write_byte(next_byte);
     }
   }
 }
@@ -130,6 +133,7 @@ mod mc_varint_test{
 
   #[test]
   fn write_test() {
+    write_test!(vec![0x00], 0);
     write_test!(vec![0x00], 0);
     write_test!(vec![0x01], 1);
     write_test!(vec![0x02], 2);
