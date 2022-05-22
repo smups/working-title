@@ -27,16 +27,20 @@ pub struct MCVarInt(pub i32);
 
 impl MCDataType for MCVarInt {
 
-  fn decode(buf: &[u8]) -> Result<MCVarInt, Err> {
+  fn decode(buf: &mut RawPacketReader) -> Result<MCVarInt, Err> {
     let mut val = 0i32;
     let mut byte_index = 0usize;
+    let mut next_byte;
 
     loop {
+      //get next byte
+      next_byte = buf.read_bytes(1)[0] as i32;
+
       //Bit-byte magic, you can figure this one out!
-      val |= (buf[byte_index] as i32 & !CONTINUE_BIT_MASK) << 7 * byte_index;
+      val |= (next_byte & !CONTINUE_BIT_MASK) << 7 * byte_index;
       
       //If the continue bit is NOT set, we're done!
-      if (buf[byte_index] as i32 & CONTINUE_BIT_MASK) == 0 {break;}
+      if (next_byte & CONTINUE_BIT_MASK) == 0 {break;}
 
       //If we above the max. size, throw an error!
       if byte_index > MAX_BYTES {return Err(
@@ -50,23 +54,20 @@ impl MCDataType for MCVarInt {
     Ok(MCVarInt(val))
   }
 
-  fn encode(&self, buf: &mut [u8]) {
-    let mut val = u32::from_le_bytes(self.0.to_le_bytes());
-    let mut byte_index = 0usize;
+  fn encode(&self, buf: &mut RawPacketWriter) {
+    let mut val = self.0;//u32::from_ne_bytes(self.0.to_ne_bytes());
 
     loop {
-
-      if (val & CONTINUE_BIT_MASK as u32) == 0 {
-        buf[byte_index] = val.to_le_bytes()[0]; //least significant byte
+      if (val & CONTINUE_BIT_MASK) == 0 {
+        buf.write_byte(val.to_le_bytes()[0]); //least significant byte
         return;
       }
 
-      buf[byte_index] = (
-        (val & !(CONTINUE_BIT_MASK as u32)) | CONTINUE_BIT_MASK as u32
-      ).to_le_bytes()[0];
+      buf.write_byte(
+        (val & !CONTINUE_BIT_MASK | CONTINUE_BIT_MASK).to_le_bytes()[0]
+      );
 
-      val = val >> 7;
-      byte_index += 1;
+      val >>= 7;
     }
   }
 }
@@ -86,58 +87,76 @@ impl MCVarInt {
 #[cfg(test)]
 mod mc_varint_test{
 
-  use crate::mc_dtypes::{MCDataType, mc_varint::MCVarInt};
+  use crate::{
+    mc_dtypes::{MCDataType, mc_varint::MCVarInt},
+    raw_packet::{RawPacketReader, RawPacketWriter}
+  };
+
+  macro_rules! make_varint {
+    ($x:expr) => {
+      MCVarInt::decode(&mut RawPacketReader::from_raw(($x))).unwrap()
+    };
+  }
 
   #[test]
   fn read_test(){
-    assert_eq!(MCVarInt::decode(&[0x00]).unwrap(), MCVarInt(0));
-    assert_eq!(MCVarInt::decode(&[0x01]).unwrap(), MCVarInt(1));
-    assert_eq!(MCVarInt::decode(&[0x02]).unwrap(), MCVarInt(2));
-    assert_eq!(MCVarInt::decode(&[0x7f]).unwrap(), MCVarInt(127));
-    assert_eq!(MCVarInt::decode(&[0x80,0x01]).unwrap(), MCVarInt(128));
-    assert_eq!(MCVarInt::decode(&[0xff,0x01]).unwrap(), MCVarInt(255));
-    assert_eq!(MCVarInt::decode(&[0xdd,0xc7,0x01]).unwrap(), MCVarInt(25565));
-    assert_eq!(MCVarInt::decode(&[0xff,0xff,0x7f]).unwrap(), MCVarInt(2097151));
-    assert_eq!(MCVarInt::decode(&[0xff,0xff,0xff,0xff,0x07]).unwrap(), MCVarInt(2147483647));
-    assert_eq!(MCVarInt::decode(&[0xff,0xff,0xff,0xff,0x0f]).unwrap(), MCVarInt(-1));
-    assert_eq!(MCVarInt::decode(&[0x80,0x80,0x80,0x80,0x08]).unwrap(), MCVarInt(-2147483648));
+    assert_eq!(make_varint!(vec![0x00]), MCVarInt(0));
+    assert_eq!(make_varint!(vec![0x01]), MCVarInt(1));
+    assert_eq!(make_varint!(vec![0x02]), MCVarInt(2));
+    assert_eq!(make_varint!(vec![0x7f]), MCVarInt(127));
+    assert_eq!(make_varint!(vec![0x80,0x01]), MCVarInt(128));
+    assert_eq!(make_varint!(vec![0xff,0x01]), MCVarInt(255));
+    assert_eq!(make_varint!(vec![0xdd,0xc7,0x01]), MCVarInt(25565));
+    assert_eq!(make_varint!(vec![0xff,0xff,0x7f]), MCVarInt(2097151));
+    assert_eq!(make_varint!(vec![0xff,0xff,0xff,0xff,0x07]), MCVarInt(2147483647));
+    assert_eq!(make_varint!(vec![0xff,0xff,0xff,0xff,0x0f]), MCVarInt(-1));
+    assert_eq!(make_varint!(vec![0x80,0x80,0x80,0x80,0x08]), MCVarInt(-2147483648));
   }
 
   #[test]
   fn write_test() {
-    let mut buf = [0,0,0,0,0];
-
+    let mut buf = RawPacketWriter::new(0);
     MCVarInt::from(0).encode(&mut buf);
-    assert_eq!([0u8,0,0,0,0], buf);
+    assert_eq!(&vec![0], buf.raw_view());
 
+    let mut buf = RawPacketWriter::new(0);
     MCVarInt::from(1).encode(&mut buf);
-    assert_eq!([0x01,0,0,0,0], buf);
+    assert_eq!(&vec![0x01], buf.raw_view());
 
+    let mut buf = RawPacketWriter::new(0);
     MCVarInt::from(2).encode(&mut buf);
-    assert_eq!([0x02,0,0,0,0], buf);
+    assert_eq!(&vec![0x02], buf.raw_view());
 
+    let mut buf = RawPacketWriter::new(0);
     MCVarInt::from(127).encode(&mut buf);
-    assert_eq!([0x7f,0,0,0,0], buf);
+    assert_eq!(&vec![0x7f], buf.raw_view());
 
+    let mut buf = RawPacketWriter::new(0);
     MCVarInt::from(128).encode(&mut buf);
-    assert_eq!([0x80,0x01,0,0,0], buf);
+    assert_eq!(&vec![0x80,0x01], buf.raw_view());
 
+    let mut buf = RawPacketWriter::new(0);
     MCVarInt::from(255).encode(&mut buf);
-    assert_eq!([0xff,0x01,0,0,0], buf);
+    assert_eq!(&vec![0xff,0x01], buf.raw_view());
 
+    let mut buf = RawPacketWriter::new(0);
     MCVarInt::from(25565).encode(&mut buf);
-    assert_eq!([0xdd,0xc7,0x01,0,0], buf);
+    assert_eq!(&vec![0xdd,0xc7,0x01], buf.raw_view());
 
+    let mut buf = RawPacketWriter::new(0);
     MCVarInt::from(2097151).encode(&mut buf);
-    assert_eq!([0xff,0xff,0x7f,0,0], buf);
+    assert_eq!(&vec![0xff,0xff,0x7f], buf.raw_view());
 
+    let mut buf = RawPacketWriter::new(0);
     MCVarInt::from(2147483647).encode(&mut buf);
-    assert_eq!([0xff,0xff,0xff,0xff,0x07], buf);
+    assert_eq!(&vec![0xff,0xff,0xff,0xff,0x07], buf.raw_view());
 
+    let mut buf = RawPacketWriter::new(0);
     MCVarInt::from(-1).encode(&mut buf);
-    assert_eq!([0xff,0xff,0xff,0xff,0x0f], buf);
+    assert_eq!(&vec![0xff,0xff,0xff,0xff,0x0f], buf.raw_view());
 
+    let mut buf = RawPacketWriter::new(0);
     MCVarInt::from(-2147483648).encode(&mut buf);
-    assert_eq!([0x80,0x80,0x80,0x80,0x08], buf);
+    assert_eq!(&vec![0x80,0x80,0x80,0x80,0x08], buf.raw_view());
   }
 }
