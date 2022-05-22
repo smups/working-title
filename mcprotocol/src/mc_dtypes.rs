@@ -21,7 +21,12 @@ use std::{
   fmt::{Display, Formatter}
 };
 
-//List of all the mc datatypes
+use crate::raw_packet::{RawPacketReader, RawPacketWriter};
+
+/*
+  List of all the data types used in the MineCraft protocol
+*/
+//(A) fixed length numeric types
 mod mc_bool;
 mod mc_byte;
 mod mc_ubyte;
@@ -29,10 +34,19 @@ mod mc_short;
 mod mc_ushort;
 mod mc_int;
 mod mc_long;
+mod mc_float;
+mod mc_double;
+
+//(B) variable-length numeric types
+mod mc_varint;
+mod mc_varlong;
+
+//(C) other
+mod mc_string;
 
 pub trait MCDataType {
-  fn decode(buf: &[u8]) -> Result<Self, Err> where Self: Sized;
-  fn encode(&self, buf: &mut [u8]);
+  fn decode(buf: &mut RawPacketReader) -> Result<Self, Err> where Self: Sized;
+  fn encode(&self, buf: &mut RawPacketWriter);
 }
 
 #[derive(Debug)]
@@ -46,9 +60,3 @@ impl Display for MCDataTypeDecodeError {
 }
 
 impl Error for MCDataTypeDecodeError{}
-
-impl From<Box<dyn Error>> for MCDataTypeDecodeError {
-    fn from(err: Box<dyn Error>) -> Self {
-        MCDataTypeDecodeError(format!("{err}"))
-    }
-}

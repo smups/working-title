@@ -17,33 +17,28 @@
   along with srvr.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+use byteorder::{BigEndian, ByteOrder};
+
 use super::*;
 
 #[derive(Debug, Clone, Copy)]
-pub struct MCBool(bool);
+pub struct MCFloat(f32);
 
-impl MCDataType for MCBool {
+impl MCDataType for MCFloat {
 
-  fn decode(buf: &mut RawPacketReader) -> Result<MCBool, Err> {
-    match buf.read_bytes(1)[0] {
-      0x00 => Ok(MCBool(true)),
-      0x01 => Ok(MCBool(false)),
-      _ => Err(MCDataTypeDecodeError("incorrect boolean encountered".to_string()))
-    }
+  fn decode(buf: &mut RawPacketReader) -> Result<MCFloat, Err> {
+    Ok(MCFloat(BigEndian::read_f32(&buf.read_bytes(4))))
   }
 
   fn encode(&self, buf: &mut RawPacketWriter) {
-    match (*self).into() {
-      false => buf.write_bytes(&[0x00]),
-      true => buf.write_bytes(&[0x01])
-    }
+    buf.write_bytes(&f32::to_be_bytes((*self).into()))
   }
 }
 
-impl From<bool> for MCBool{
-  fn from(val: bool) -> Self {MCBool(val)}
+impl From<f32> for MCFloat{
+  fn from(val: f32) -> Self {MCFloat(val)}
 }
 
-impl From<MCBool> for bool {
-  fn from(val: MCBool) -> Self {val.0}
+impl From<MCFloat> for f32 {
+  fn from(val: MCFloat) -> Self {val.0}
 }

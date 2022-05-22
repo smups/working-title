@@ -24,15 +24,12 @@ pub struct MCUByte(u8);
 
 impl MCDataType for MCUByte {
 
-  fn decode(buf: &[u8]) -> Result<MCUByte, Err> {
-    Ok(MCUByte(u8::from_be_bytes([buf[0]])))
+  fn decode(buf: &mut RawPacketReader) -> Result<MCUByte, Err> {
+    Ok(MCUByte(u8::from_be_bytes([buf.read_bytes(1)[0]])))
   }
 
-  fn encode(&self, buf: &mut [u8]) {
-    u8::to_be_bytes((*self).into())
-      .iter()
-      .enumerate()
-      .for_each(|(index, byte)| buf[index] = *byte);
+  fn encode(&self, buf: &mut RawPacketWriter) {
+    buf.write_bytes(&u8::to_be_bytes((*self).into()))
   }
 }
 

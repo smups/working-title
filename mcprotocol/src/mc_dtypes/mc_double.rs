@@ -17,33 +17,28 @@
   along with srvr.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+use byteorder::{BigEndian, ByteOrder};
+
 use super::*;
 
 #[derive(Debug, Clone, Copy)]
-pub struct MCBool(bool);
+pub struct MCDouble(f64);
 
-impl MCDataType for MCBool {
+impl MCDataType for MCDouble {
 
-  fn decode(buf: &mut RawPacketReader) -> Result<MCBool, Err> {
-    match buf.read_bytes(1)[0] {
-      0x00 => Ok(MCBool(true)),
-      0x01 => Ok(MCBool(false)),
-      _ => Err(MCDataTypeDecodeError("incorrect boolean encountered".to_string()))
-    }
+  fn decode(buf: &mut RawPacketReader) -> Result<MCDouble, Err> {
+    Ok(MCDouble(BigEndian::read_f64(&buf.read_bytes(8))))
   }
 
   fn encode(&self, buf: &mut RawPacketWriter) {
-    match (*self).into() {
-      false => buf.write_bytes(&[0x00]),
-      true => buf.write_bytes(&[0x01])
-    }
+    buf.write_bytes(&f64::to_be_bytes((*self).into()))
   }
 }
 
-impl From<bool> for MCBool{
-  fn from(val: bool) -> Self {MCBool(val)}
+impl From<f64> for MCDouble{
+  fn from(val: f64) -> Self {MCDouble(val)}
 }
 
-impl From<MCBool> for bool {
-  fn from(val: MCBool) -> Self {val.0}
+impl From<MCDouble> for f64 {
+  fn from(val: MCDouble) -> Self {val.0}
 }

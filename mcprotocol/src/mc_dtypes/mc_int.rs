@@ -17,6 +17,8 @@
   along with srvr.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+use byteorder::{BigEndian, ByteOrder};
+
 use super::*;
 
 #[derive(Debug, Clone, Copy)]
@@ -24,15 +26,12 @@ pub struct MCInt(i32);
 
 impl MCDataType for MCInt {
 
-  fn decode(buf: &[u8]) -> Result<MCInt, Err> {
-    Ok(MCInt(i32::from_be_bytes([buf[0], buf[1], buf[2], buf[3]])))
+  fn decode(buf: &mut RawPacketReader) -> Result<MCInt, Err> {
+    Ok(MCInt(BigEndian::read_i32(&buf.read_bytes(4))))
   }
 
-  fn encode(&self, buf: &mut [u8]) {
-    i32::to_be_bytes((*self).into())
-      .iter()
-      .enumerate()
-      .for_each(|(index, byte)| buf[index] = *byte);
+  fn encode(&self, buf: &mut RawPacketWriter) {
+    buf.write_bytes(&i32::to_be_bytes((*self).into()))
   }
 }
 

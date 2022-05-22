@@ -17,6 +17,8 @@
   along with srvr.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+use byteorder::{BigEndian, ByteOrder};
+
 use super::*;
 
 #[derive(Debug, Clone, Copy)]
@@ -24,18 +26,12 @@ pub struct MCLong(i64);
 
 impl MCDataType for MCLong {
 
-  fn decode(buf: &[u8]) -> Result<MCLong, Err> {
-    Ok(MCLong(i64::from_be_bytes([
-      buf[0], buf[1], buf[2], buf[3],
-      buf[4], buf[5], buf[6], buf[7]
-      ])))
+  fn decode(buf: &mut RawPacketReader) -> Result<MCLong, Err> {
+    Ok(MCLong(BigEndian::read_i64(&buf.read_bytes(8))))
   }
 
-  fn encode(&self, buf: &mut [u8]) {
-    i64::to_be_bytes((*self).into())
-      .iter()
-      .enumerate()
-      .for_each(|(index, byte)| buf[index] = *byte);
+  fn encode(&self, buf: &mut RawPacketWriter) {
+    buf.write_bytes(&i64::to_be_bytes((*self).into()))
   }
 }
 

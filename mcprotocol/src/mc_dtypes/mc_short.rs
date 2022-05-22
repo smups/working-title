@@ -17,6 +17,8 @@
   along with srvr.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+use byteorder::{BigEndian, ByteOrder};
+
 use super::*;
 
 #[derive(Debug, Clone, Copy)]
@@ -24,15 +26,12 @@ pub struct MCShort(i16);
 
 impl MCDataType for MCShort {
 
-  fn decode(buf: &[u8]) -> Result<MCShort, Err> {
-    Ok(MCShort(i16::from_be_bytes([buf[0], buf[1]])))
+  fn decode(buf: &mut RawPacketReader) -> Result<MCShort, Err> {
+    Ok(MCShort(BigEndian::read_i16(&buf.read_bytes(2))))
   }
 
-  fn encode(&self, buf: &mut [u8]) {
-    i16::to_be_bytes((*self).into())
-      .iter()
-      .enumerate()
-      .for_each(|(index, byte)| buf[index] = *byte);
+  fn encode(&self, buf: &mut RawPacketWriter) {
+    buf.write_bytes(&i16::to_be_bytes((*self).into()))
   }
 }
 
