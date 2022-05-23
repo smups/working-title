@@ -22,7 +22,7 @@ use byteorder::{BigEndian, ByteOrder};
 use super::*;
 
 #[derive(Debug, Clone, Copy)]
-pub struct MCUShort(u16);
+pub struct MCUShort(pub u16);
 
 impl MCDataType for MCUShort {
 

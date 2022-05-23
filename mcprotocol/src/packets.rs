@@ -17,15 +17,22 @@
   along with srvr.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+use std::error::Error;
+
 use crate::{
   raw_packet::{RawPacketReader, RawPacketWriter},
   mc_dtypes::{MCDataType, MCDataTypeDecodeError, MCVarInt}
 };
 
+/*
+  List of all Possible packages
+*/
+mod handshake;
+
 #[derive(Debug, Clone, Copy)]
 pub struct PacketFormat {
-  length: usize,
-  packet_id: usize
+  pub length: usize,
+  pub packet_id: usize
 }
 
 impl MCDataType for PacketFormat {
@@ -43,4 +50,10 @@ impl MCDataType for PacketFormat {
     MCVarInt(self.packet_id as i32).encode(buf);
   }
 
+}
+
+pub trait Packet {
+  fn decode(buf: &mut RawPacketReader) -> Result<Self, Box<dyn Error>> where Self: Sized;
+  fn encode(&self, buf: &mut RawPacketWriter);
+  fn packet_id(&self) -> usize;
 }

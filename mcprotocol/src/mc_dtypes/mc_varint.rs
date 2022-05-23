@@ -23,7 +23,7 @@ const CONTINUE_BIT_MASK: i32 = 0x80;
 const MAX_BYTES: usize = 5;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct MCVarInt(i32);
+pub struct MCVarInt(pub i32);
 
 impl MCDataType for MCVarInt {
 
@@ -82,11 +82,6 @@ impl From<i32> for MCVarInt{
 
 impl From<MCVarInt> for i32 {
   fn from(val: MCVarInt) -> Self {val.0}
-}
-
-impl MCVarInt {
-  pub fn new(int: i32) -> Self {Self(int)}
-  pub fn byte_size(&self) -> usize {todo!()}
 }
 
 #[cfg(test)]

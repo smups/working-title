@@ -17,6 +17,8 @@
   along with srvr.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+pub const PROTOCOL_VERSION: usize = 758;
+
 /*
   This file contains
 */
