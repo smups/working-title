@@ -49,6 +49,12 @@ impl MCDataType for MCString {
   }
 }
 
+impl MCString {
+  pub fn new(txt: String) -> MCString {
+    MCString{ len: txt.len(), txt: txt }
+  }
+}
+
 impl From<MCString> for String {
   fn from(a: MCString) -> String {a.txt}
 }
