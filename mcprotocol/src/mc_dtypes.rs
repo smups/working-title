@@ -41,8 +41,11 @@ mod mc_double;
 mod mc_varint;
 mod mc_varlong;
 
-//(C) other
+//(C) Text
 mod mc_string;
+
+//(D) Entity and world data
+mod mc_position;
 
 pub trait MCDataType {
   fn decode(buf: &mut RawPacketReader) -> Result<Self, Err> where Self: Sized;
