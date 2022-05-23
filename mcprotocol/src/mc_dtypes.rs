@@ -63,3 +63,27 @@ impl Display for MCDataTypeDecodeError {
 }
 
 impl Error for MCDataTypeDecodeError{}
+
+/*
+  Last step is to re-export all MC datatypes under this namespace
+*/
+//(A) fixed length numeric types
+pub use mc_bool::MCBool as MCBool;
+pub use mc_byte::MCByte as MCByte;
+pub use mc_ubyte::MCUByte as MCUByte;
+pub use mc_short::MCShort as MCShort;
+pub use mc_ushort::MCUShort as MCUShort;
+pub use mc_int::MCInt as MCInt;
+pub use mc_long::MCLong as MCLong;
+pub use mc_float::MCFloat as MCFloat;
+pub use mc_double::MCDouble as MCDouble;
+
+//(B) variable-length numeric types
+pub use mc_varint::MCVarInt as MCVarInt;
+pub use mc_varlong::MCVarLong as MCVarLong;
+
+//(C) Text
+pub use mc_string::MCString as MCString;
+
+//(D) Entity and world data
+pub use mc_position::MCPosition as MCPosition;
