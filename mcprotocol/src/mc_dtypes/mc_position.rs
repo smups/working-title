@@ -101,15 +101,6 @@ mod mc_position_test {
   }
 
   #[test]
-  fn read_test() {
-    let test = 0xff_ff_ff_c0_00_00_00_00_u64.to_be_bytes();
-    let mut test_buf = RawPacketReader::from_raw(test.to_vec());
-    let pos = MCPosition::decode(&mut test_buf).unwrap();
-    println!("{:?}", pos);
-    //read_test!(vec![0x80,0x00,0x00,0x20,0x00,0x00,0x20,0x00], 0, 1, 0);
-  }
-
-  #[test]
   fn io_correctness_test() {
     for x in [-33554432, 0, 33554431] {
       for z in [-33554432, 0, 33554431] {
