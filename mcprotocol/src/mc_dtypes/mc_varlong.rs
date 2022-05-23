@@ -44,7 +44,7 @@ impl MCDataType for MCVarLong {
 
       //If we above the max. size, throw an error!
       if byte_index > MAX_BYTES {return Err(
-        MCDataTypeDecodeError("tried to decode varint longer than 5 bytes".to_string())
+        MCDataTypeDecodeError("tried to decode varlong longer than 10 bytes".to_string())
       )}
 
       //increment the index
@@ -99,10 +99,8 @@ mod mc_varlong_test{
   macro_rules! read_test {
     ($bytes:expr, $num:expr) => {
       assert_eq!(
-        MCVarLong::decode(
-          &mut RawPacketReader::from_raw(($bytes))).unwrap(),
-          MCVarLong(($num)
-        )
+        MCVarLong::decode(&mut RawPacketReader::from_raw(($bytes))).unwrap(),
+        MCVarLong(($num))
       )
     };
   }
