@@ -37,6 +37,12 @@ impl RawPacketReader {
   pub fn to_raw(self) -> Vec<u8> {self.bytes}
   pub fn raw_view(&self) -> &Vec<u8> {&self.bytes}
 
+  pub fn read_byte(&mut self) -> u8 {
+    let rtrn = self.bytes[self.ptr];
+    self.ptr += 1;
+    return rtrn;
+  }
+
   pub fn read_bytes(&mut self, num_bytes: usize) -> Vec<u8> {
     let bytes = self.bytes[self.ptr..self.ptr+num_bytes].to_vec();
 
