@@ -71,6 +71,9 @@ impl Client {
           }
         }
       }
+
+      //Tick-loop ended, client is dead
+      println!("Client disconnected, ending tickoop {}",thread::current().name().unwrap());
     }).unwrap();
 
     Client { addr: addr, tx: tx, rx: rx }
