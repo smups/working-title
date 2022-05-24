@@ -17,9 +17,11 @@
   along with srvr.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-use std::{net::TcpStream, io::Read, error::Error};
+use std::{net::TcpStream, io::{Read, Write}, error::Error};
 
 use crate::mc_dtypes::{MCVarInt, MCDataType};
+
+const MAX_PACKAGE_LEN: usize = 2097151;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RawPacketReader {
@@ -35,7 +37,7 @@ pub struct RawPacketReader {
 
 impl RawPacketReader {
 
-  pub fn new(mut stream: TcpStream) -> Result<Self, Box<dyn Error>> {
+  pub fn read(stream: &mut TcpStream) -> Result<Self, Box<dyn Error>> {
     /*(1)
       We first have to find the length of the package. This is encoded in an
       up-to 3-byte varint. If we read too many bytes, we'll have to account for
@@ -69,6 +71,8 @@ impl RawPacketReader {
 
     Ok(reader)
   }
+
+  pub fn get_package_id(&self) -> usize {self.id}
 
   pub fn from_raw(raw: Vec<u8>) -> RawPacketReader {
     RawPacketReader {data: raw, ptr: 0, id: 0}
@@ -113,18 +117,41 @@ pub struct RawPacketWriter {
     to a protocol-specific readable format. To aid in this conversion, the RawPacket
     keeps track of how many bytes have been read.
   */
-  bytes: Vec<u8>
+  bytes: Vec<u8>,
+  id: usize
 }
 
 impl RawPacketWriter {
 
+  pub fn write(mut self, stream: &mut TcpStream) -> Result<(), Box<dyn Error>> {
+    //(1) First we should encode the package ID, since its length is included
+    //in the package length
+    let mut tmp_writer = RawPacketWriter::new(0);
+    MCVarInt::from(self.id as i32).encode(&mut tmp_writer);
+    let mut id_varint_buf = tmp_writer.to_raw();
+    let package_len = self.bytes.len() + id_varint_buf.len();
+
+    //(2) Next, we'll encode the package length
+    tmp_writer = RawPacketWriter::new(0);
+    MCVarInt::from(package_len as i32).encode(&mut tmp_writer);
+    let mut full_buf = tmp_writer.to_raw();
+
+    //(3) We still have to append the ID and the package data
+    full_buf.append(&mut id_varint_buf);
+    full_buf.append(&mut self.bytes);
+
+    //(4) Now we write the bytes to the stream
+    stream.write(&full_buf)?;
+    Ok(())
+  }
+
   pub fn new(size: usize) -> RawPacketWriter {
-    RawPacketWriter {bytes: Vec::with_capacity(size)}
+    RawPacketWriter {bytes: Vec::with_capacity(size), id: 0}
   }
 
   pub fn from_raw(raw: Vec<u8>) -> RawPacketWriter {
     let ptr_start = raw.len();
-    RawPacketWriter { bytes: raw }
+    RawPacketWriter { bytes: raw, id: 0 }
   }
 
   pub fn to_raw(self) -> Vec<u8> {self.bytes}
