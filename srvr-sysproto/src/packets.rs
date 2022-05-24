@@ -27,6 +27,7 @@ use crate::{
 /*
   List of all Possible packages
 */
+//(A) Handshake procedure
 mod handshake;
 
 #[derive(Debug, Clone, Copy)]
@@ -57,3 +58,9 @@ pub trait Packet {
   fn encode(&self, buf: &mut RawPacketWriter);
   fn packet_id(&self) -> usize;
 }
+
+/*
+  Re-export of all Possible packages
+*/
+//(A) Handshake procedure
+pub use handshake::HandshakePacket as HandshakePacket;

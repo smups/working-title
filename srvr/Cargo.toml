@@ -8,3 +8,4 @@ edition = "2021"
 [dependencies]
 libloading = "*"
 srvr-sysplugin = { path = "../srvr-sysplugin", version = "*" }
+srvr-sysproto = {path = "../srvr-sysproto", version = "*"}

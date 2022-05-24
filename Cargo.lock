@@ -25,13 +25,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "mcprotocol"
-version = "0.1.0"
-dependencies = [
- "byteorder",
-]
-
-[[package]]
 name = "sample_plugin"
 version = "0.1.0"
 dependencies = [
@@ -44,11 +37,19 @@ version = "0.1.0"
 dependencies = [
  "libloading",
  "srvr-sysplugin",
+ "srvr-sysproto",
 ]
 
 [[package]]
 name = "srvr-sysplugin"
 version = "0.1.0"
+
+[[package]]
+name = "srvr-sysproto"
+version = "0.1.0"
+dependencies = [
+ "byteorder",
+]
 
 [[package]]
 name = "winapi"
