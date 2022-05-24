@@ -54,7 +54,7 @@ impl Client {
         //(2) Find out what kind of packet we are dealing with
         let next_step = match package.get_package_id() {
           0x00 => net::x00_handshake::Handler::handle_package(package, &mut stream),
-          _ => {DoNothing}
+          _ => {panic!("Request not implemented!")}
         };
       }
     });

@@ -25,8 +25,6 @@ use crate::{
   mc_dtypes::{MCVarInt, MCDataType, MCString, MCUShort}
 };
 
-const PACKET_ID: usize = 0x00;
-
 #[derive(Debug,Clone)]
 pub struct HandshakePacket {
   proto_ver: usize,
@@ -36,6 +34,8 @@ pub struct HandshakePacket {
 }
 
 impl Packet for HandshakePacket {
+
+  const PACKET_ID: usize = 0x00;
 
   fn decode(buf: &mut RawPacketReader) -> Result<HandshakePacket, Box<dyn Error>> {
     let proto_ver: i32 = MCVarInt::decode(buf)?.into();
@@ -57,8 +57,6 @@ impl Packet for HandshakePacket {
     MCUShort(self.server_port).encode(buf);
     MCVarInt(self.next_state as i32).encode(buf);
   }
-
-  fn packet_id(&self) -> usize {PACKET_ID}
 
 }
 

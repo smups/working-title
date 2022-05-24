@@ -25,14 +25,14 @@ use crate::{
   mc_dtypes::{MCDataType, MCString}
 };
 
-const PACKET_ID: usize = 0x00;
-
 #[derive(Debug,Clone)]
 pub struct StatusPacket {
   status: String
 }
 
 impl Packet for StatusPacket {
+
+  const PACKET_ID: usize = 0x00;
 
   fn decode(buf: &mut RawPacketReader) -> Result<Self, Box<dyn Error>> {
     Ok(StatusPacket{status: MCString::decode(buf)?.into()})
@@ -41,8 +41,6 @@ impl Packet for StatusPacket {
   fn encode(&self, buf: &mut RawPacketWriter) {
     MCString::from(self.status.clone()).encode(buf);
   }
-
-  fn packet_id(&self) -> usize {PACKET_ID}
 
 }
 

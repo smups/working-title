@@ -20,29 +20,19 @@
 use std::error::Error;
 
 use crate::{
-  raw_packet::{RawPacketReader, RawPacketWriter}
+  packets::Packet,
+  raw_packet::{RawPacketReader, RawPacketWriter},
+  mc_dtypes::{MCVarInt, MCDataType, MCString, MCUShort}
 };
 
-//Module structure
-mod server_bound;
-mod client_bound;
-
-pub trait Packet {
-  const PACKET_ID: usize;
-
-  fn decode(buf: &mut RawPacketReader) -> Result<Self, Box<dyn Error>> where Self: Sized;
-  fn encode(&self, buf: &mut RawPacketWriter);
-  fn packet_id(&self) -> usize {Self::PACKET_ID}
+#[derive(Debug,Clone)]
+pub struct PingPacket {
+  payload: u64
 }
 
-/*
-  Re-export of all Possible server-bound (incoming) packages
-*/
-//(A) Handshake procedure
-pub use server_bound::handshake::HandshakePacket as SBHandshakePacket;
+impl Packet for PingPacket {
 
-/*
-  Re-export of all Possible client-bound (outgoing) packages
-*/
-//(A) Handshake procedure
-pub use client_bound::status::StatusPacket as CBStatusPacket;
+  const PACKET_ID: usize = 0x01;
+
+
+}
