@@ -17,29 +17,32 @@
   along with srvr.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-use std::error::Error;
+use std::net::TcpStream;
 
-use crate::{
-  packets::Packet,
-  raw_packet::{RawPacketReader, RawPacketWriter},
-  mc_dtypes::{MCDataType, MCLong}
+use super::PackageHandler;
+
+use crate::task::Task;
+
+use srvr_sysproto::{
+  packets::{Packet, SB_PingPacket, CB_PongPacket},
+  raw_packet::{RawPacketReader, RawPacketWriter}
 };
 
-#[derive(Debug,Clone)]
-pub struct PongPacket {
-  pub payload: i64
-}
+#[derive(Debug)]
+pub struct Handler;
 
-impl Packet for PongPacket {
+impl PackageHandler for Handler {
+  fn handle_package(mut raw_pck: RawPacketReader, stream: &mut TcpStream) -> Task {
+    //(1) Decode ping packet
+    let ping = SB_PingPacket::decode(&mut raw_pck).unwrap();
 
-  const PACKET_ID: usize = 0x01;
+    //(2) Return pong packet
+    let pong = CB_PongPacket{payload: ping.payload};
+    let mut writer = RawPacketWriter::new(8);
+    pong.encode(&mut writer);
+    writer.write(stream).unwrap();
 
-  fn decode(buf: &mut RawPacketReader) -> Result<PongPacket, Box<dyn Error>> {
-    Ok(PongPacket{payload: MCLong::decode(buf)?.into()})
+    //(3) Kill the connection
+    Task::Die
   }
-
-  fn encode(&self, buf: &mut RawPacketWriter) {
-    MCLong::from(self.payload).encode(buf);
-  }
-
 }

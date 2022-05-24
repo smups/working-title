@@ -27,7 +27,7 @@ use crate::{
 
 #[derive(Debug,Clone)]
 pub struct PingPacket {
-  payload: i64
+  pub payload: i64
 }
 
 impl Packet for PingPacket {

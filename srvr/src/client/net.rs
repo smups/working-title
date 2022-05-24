@@ -27,4 +27,9 @@ pub trait PackageHandler {
   fn handle_package(raw_pck: RawPacketReader, stream: &mut TcpStream) -> Task;
 }
 
+/*
+  List of package handlers
+*/
+//(A) handshake procedure
 pub mod x00_handshake;
+pub mod x01_pingpong;

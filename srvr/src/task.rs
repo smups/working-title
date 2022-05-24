@@ -17,6 +17,7 @@
   along with srvr.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#[derive(Debug, Clone, Copy)]
 pub enum Task {
   DoNothing,
   Die

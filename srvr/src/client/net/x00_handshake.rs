@@ -28,6 +28,7 @@ use srvr_sysproto::{
   raw_packet::{RawPacketReader, RawPacketWriter}
 };
 
+#[derive(Debug)]
 pub struct Handler;
 
 impl PackageHandler for Handler {
