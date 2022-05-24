@@ -19,3 +19,4 @@
 
 //(A) Handshake procedure
 pub mod handshake;
+pub mod ping;

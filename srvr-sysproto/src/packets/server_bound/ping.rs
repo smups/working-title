@@ -22,17 +22,24 @@ use std::error::Error;
 use crate::{
   packets::Packet,
   raw_packet::{RawPacketReader, RawPacketWriter},
-  mc_dtypes::{MCVarInt, MCDataType, MCString, MCUShort}
+  mc_dtypes::{MCDataType, MCLong}
 };
 
 #[derive(Debug,Clone)]
 pub struct PingPacket {
-  payload: u64
+  payload: i64
 }
 
 impl Packet for PingPacket {
 
   const PACKET_ID: usize = 0x01;
 
+  fn decode(buf: &mut RawPacketReader) -> Result<PingPacket, Box<dyn Error>> {
+    Ok(PingPacket{payload: MCLong::decode(buf)?.into()})
+  }
+
+  fn encode(&self, buf: &mut RawPacketWriter) {
+    MCLong::from(self.payload).encode(buf);
+  }
 
 }
