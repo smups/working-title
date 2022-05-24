@@ -18,5 +18,6 @@
 */
 
 pub enum Task {
-  DoNothing
+  DoNothing,
+  Die
 }
