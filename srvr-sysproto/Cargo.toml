@@ -1,5 +1,5 @@
 [package]
-name = "mcprotocol"
+name = "srvr-sysproto"
 version = "0.1.0"
 edition = "2021"
 

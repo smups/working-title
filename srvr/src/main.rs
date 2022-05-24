@@ -1,7 +1,9 @@
+use std::error::Error;
+
 use libloading::*;
 use srvr_sysplugin::Plugin;
 
-fn main() {
+fn main() -> Result<(), Box<dyn Error>> {
     println!("Starting Server!");
 
     let lib = unsafe {
@@ -15,4 +17,6 @@ fn main() {
     let mut plugin = linker();
     plugin.as_mut().start();
     plugin.as_mut().start();
+
+    Ok(())
 }
