@@ -19,9 +19,8 @@
 
 use std::error::Error;
 
-use super::Packet;
-
 use crate::{
+  packets::Packet,
   raw_packet::{RawPacketReader, RawPacketWriter},
   mc_dtypes::{MCVarInt, MCDataType, MCString, MCUShort}
 };

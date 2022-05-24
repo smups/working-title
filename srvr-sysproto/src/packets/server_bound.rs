@@ -17,24 +17,5 @@
   along with srvr.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-use std::error::Error;
-
-use crate::{
-  raw_packet::{RawPacketReader, RawPacketWriter}
-};
-
-//Module structure
-mod server_bound;
-mod client_bound;
-
-pub trait Packet {
-  fn decode(buf: &mut RawPacketReader) -> Result<Self, Box<dyn Error>> where Self: Sized;
-  fn encode(&self, buf: &mut RawPacketWriter);
-  fn packet_id(&self) -> usize;
-}
-
-/*
-  Re-export of all Possible server-bound (incoming) packages
-*/
 //(A) Handshake procedure
-pub use server_bound::handshake::HandshakePacket as SBHandshakePacket;
+pub mod handshake;

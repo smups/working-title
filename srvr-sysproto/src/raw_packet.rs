@@ -46,12 +46,22 @@ impl RawPacketReader {
     let mut tmp_reader= RawPacketReader::from_raw(tmp_buf);
 
     let package_len: i32 = MCVarInt::decode(&mut tmp_reader)?.into();
-    let bytes_to_read = (package_len as usize) - (3 - tmp_reader.ptr);
+    let excess = 3 - tmp_reader.ptr; //bytes that are not part of package_len
+    let bytes_to_read = (package_len as usize) - excess;
 
     //(2) Read the remaining contents
     let mut big_buf = vec![0u8;bytes_to_read];
     stream.read(&mut big_buf)?;
-    let mut reader = RawPacketReader::from_raw(big_buf);
+    let mut reader = match excess {
+      0 => RawPacketReader::from_raw(big_buf),
+      1 | 2 => {
+        let mut complete_buf = tmp_reader.to_raw()[3-excess..3].to_vec();
+        complete_buf.append(&mut big_buf);
+        RawPacketReader::from_raw(complete_buf)
+      } other => {
+        todo!();
+      }
+    };
 
     //(3) Set the package ID
     let package_id: i32 = MCVarInt::decode(&mut reader)?.into();
@@ -103,35 +113,27 @@ pub struct RawPacketWriter {
     to a protocol-specific readable format. To aid in this conversion, the RawPacket
     keeps track of how many bytes have been read.
   */
-  bytes: Vec<u8>,
-  ptr: usize
+  bytes: Vec<u8>
 }
 
 impl RawPacketWriter {
 
   pub fn new(size: usize) -> RawPacketWriter {
-    RawPacketWriter {bytes: Vec::with_capacity(size), ptr: 0}
+    RawPacketWriter {bytes: Vec::with_capacity(size)}
   }
 
   pub fn from_raw(raw: Vec<u8>) -> RawPacketWriter {
     let ptr_start = raw.len();
-    RawPacketWriter { bytes: raw, ptr: ptr_start}
+    RawPacketWriter { bytes: raw }
   }
 
   pub fn to_raw(self) -> Vec<u8> {self.bytes}
   pub fn raw_view(&self) -> &Vec<u8> {&self.bytes}
 
-  pub fn write_byte(&mut self, byte: u8) {
-    self.bytes.push(byte);
-    self.ptr += 1;
-  }
+  pub fn write_byte(&mut self, byte: u8) {self.bytes.push(byte);}
 
   pub fn write_bytes(&mut self, bytes: &[u8]) {
-    let bytes_written = bytes.len();
-    self.bytes.copy_from_slice(bytes);
-
-    //Advance ptr
-    self.ptr += bytes_written;
+    bytes.iter().for_each(|byte| self.write_byte(*byte));
   }
 
 }
