@@ -39,10 +39,12 @@ pub trait Packet {
   Re-export of all Possible server-bound (incoming) packages
 */
 //(A) Handshake procedure
-pub use server_bound::handshake::HandshakePacket as SBHandshakePacket;
+pub use server_bound::handshake::HandshakePacket as SB_HandshakePacket;
+pub use server_bound::ping::PingPacket as SB_PingPacket;
 
 /*
   Re-export of all Possible client-bound (outgoing) packages
 */
 //(A) Handshake procedure
-pub use client_bound::status::StatusPacket as CBStatusPacket;
+pub use client_bound::status::StatusPacket as CB_StatusPacket;
+pub use client_bound::pong::PongPacket as CB_PongPacket;

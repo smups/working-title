@@ -25,7 +25,7 @@ use std::{
 
 use srvr_sysproto::{
   raw_packet::RawPacketReader,
-  packets::{SBHandshakePacket, Packet}
+  packets::{SB_HandshakePacket, Packet}
 };
 
 use crate::{

@@ -1,17 +1,11 @@
 use std::{
-    error::Error,
-    net::TcpListener,
-    thread,
-    sync::mpsc::channel
+  error::Error,
+  net::TcpListener,
 };
 
 use libloading::*;
 
 use srvr_sysplugin::Plugin;
-use srvr_sysproto::{
-  packets::{SBHandshakePacket, Packet},
-  raw_packet::RawPacketReader
-};
 
 use crate::client::Client;
 

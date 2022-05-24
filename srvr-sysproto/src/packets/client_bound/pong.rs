@@ -17,6 +17,29 @@
   along with srvr.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-//(A) Handshaking
-pub mod status;
-pub mod pong;
+use std::error::Error;
+
+use crate::{
+  packets::Packet,
+  raw_packet::{RawPacketReader, RawPacketWriter},
+  mc_dtypes::{MCDataType, MCLong}
+};
+
+#[derive(Debug,Clone)]
+pub struct PongPacket {
+  payload: i64
+}
+
+impl Packet for PongPacket {
+
+  const PACKET_ID: usize = 0x01;
+
+  fn decode(buf: &mut RawPacketReader) -> Result<PongPacket, Box<dyn Error>> {
+    Ok(PongPacket{payload: MCLong::decode(buf)?.into()})
+  }
+
+  fn encode(&self, buf: &mut RawPacketWriter) {
+    MCLong::from(self.payload).encode(buf);
+  }
+
+}
