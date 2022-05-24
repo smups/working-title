@@ -32,7 +32,9 @@ use crate::{
   client::net::PackageHandler
 };
 
+//Module structure
 mod net;
+pub mod state;
 
 #[derive(Debug)]
 pub struct Client {
@@ -50,24 +52,39 @@ impl Client {
     thread::Builder::new().name(format!("TL_thread_@{addr:?}")).spawn(move || {
       let mut task_list: Vec<Task> = Vec::new();
 
+      //Flag to differentiate between login, handshake and play states
+      use state::PlayState::*;
+      let mut state = HandShake;
+
       'tick_loop: loop {
         //(1) Get input from the remote client
         let mut package = RawPacketReader::read(&mut stream).unwrap();
 
         //(2) Find out what kind of packet we are dealing with
-        let client_tasks = match package.get_package_id() {
-          0x00 => net::x00_handshake::Handler::handle_package(package, &mut stream),
-          0x01 => net::x01_pingpong::Handler::handle_package(package, &mut stream),
-          0xfe => net::xfe_serverlist_ping::Handler::handle_package(package, &mut stream),
-          _ => {DoNothing} //Request not implemented
+        let client_task = match state {
+          HandShake => { match package.get_package_id() {
+            0x00 => net::x00_handshake::Handler::handle_package(package, &mut stream),
+            0x01 => net::x01_pingpong::Handler::handle_package(package, &mut stream),
+            0xfe => net::xfe_serverlist_ping::Handler::handle_package(package, &mut stream),
+            _ => DoNothing
+          }},
+          Login => {
+            //Not implemented
+            DoNothing
+          },
+          Play => {
+            //Not implemented yet
+            DoNothing
+          }
         };
-        task_list.push(client_tasks);
+        task_list.push(client_task);
 
         //(3) Execute tasks
         for task in task_list.drain(..) {
           match task {
             DoNothing => {}, //do nothing lol
-            Die => break 'tick_loop
+            Die => break 'tick_loop,
+            SetServerState(new_state) => state = new_state
           }
         }
       }

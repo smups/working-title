@@ -16,12 +16,3 @@
   You should have received a copy of the GNU General Public License
   along with srvr.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-use crate::client::state::PlayState;
-
-#[derive(Debug, Clone, Copy)]
-pub enum Task {
-  DoNothing,
-  Die,
-  SetServerState(PlayState)
-}

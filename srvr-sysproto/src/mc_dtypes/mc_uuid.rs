@@ -17,11 +17,28 @@
   along with srvr.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-use crate::client::state::PlayState;
+use byteorder::{BigEndian, ByteOrder};
+
+use super::*;
 
 #[derive(Debug, Clone, Copy)]
-pub enum Task {
-  DoNothing,
-  Die,
-  SetServerState(PlayState)
+pub struct MCUuid(u128);
+
+impl MCDataType for MCUuid {
+
+  fn decode(buf: &mut RawPacketReader) -> Result<MCUuid, Err> {
+    Ok(MCUuid(BigEndian::read_u128(&buf.read_bytes(16))))
+  }
+
+  fn encode(&self, buf: &mut RawPacketWriter) {
+    buf.write_bytes(&u128::to_be_bytes((*self).into()))
+  }
+}
+
+impl From<u128> for MCUuid{
+  fn from(val: u128) -> Self {MCUuid(val)}
+}
+
+impl From<MCUuid> for u128 {
+  fn from(val: MCUuid) -> Self {val.0}
 }

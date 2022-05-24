@@ -45,6 +45,7 @@ mod mc_varlong;
 mod mc_string;
 
 //(D) Entity and world data
+mod mc_uuid;
 mod mc_position;
 
 pub trait MCDataType {
@@ -86,4 +87,5 @@ pub use mc_varlong::MCVarLong as MCVarLong;
 pub use mc_string::MCString as MCString;
 
 //(D) Entity and world data
+pub use mc_uuid::MCUuid as MCUuid;
 pub use mc_position::MCPosition as MCPosition;

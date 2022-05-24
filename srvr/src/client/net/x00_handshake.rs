@@ -21,7 +21,10 @@ use std::net::TcpStream;
 
 use super::PackageHandler;
 
-use crate::task::Task;
+use crate::{
+  client::state::PlayState::*,
+  task::Task,
+};
 
 use srvr_sysproto::{
   packets::{SB_HandshakePacket, Packet, CB_StatusPacket},
@@ -45,21 +48,21 @@ impl PackageHandler for Handler {
         //(2.1) Create sample response
         let response = CB_StatusPacket::new(format!("{{
           \"version\": {{
-              \"name\": \"1.18.2\",
-              \"protocol\": {}
+            \"name\": \"1.18.2\",
+            \"protocol\": {}
           }},
           \"players\": {{
-              \"max\": 1000,
-              \"online\": 5,
-              \"sample\": [
-                  {{
-                      \"name\": \"thinkofdeath\",
-                      \"id\": \"4566e69f-c907-48ee-8d71-d7ba5aa00d20\"
-                  }}
-              ]
+            \"max\": 1000,
+            \"online\": 5,
+            \"sample\": [
+              {{
+                \"name\": \"thinkofdeath\",
+                \"id\": \"4566e69f-c907-48ee-8d71-d7ba5aa00d20\"
+              }}
+            ]
           }},
           \"description\": {{
-              \"text\": \"Hello world\"
+            \"text\": \"Hello world\"
           }}
         }}", srvr_sysproto::PROTOCOL_VERSION));
         
@@ -68,11 +71,12 @@ impl PackageHandler for Handler {
         response.encode(&mut writer);
         writer.write(stream).unwrap();
 
+        //(R) Do nothing
         Task::DoNothing
       } 0x02 => {
-        //Code 2: Login Request
-        todo!();
-      } other => Task::DoNothing
+        //Code 2: Login Request, change login flag to true
+        Task::SetServerState(Login)
+      } _ => Task::DoNothing
     };
 
     return next_step;
