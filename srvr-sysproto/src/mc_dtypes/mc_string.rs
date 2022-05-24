@@ -45,7 +45,11 @@ impl MCDataType for MCString {
   }
 
   fn encode(&self, buf: &mut RawPacketWriter) {
-      todo!()
+    //(1) Encode the length in the writer
+    MCVarInt::from(self.len as i32).encode(buf);
+
+    //(2) Encode the string itself
+    buf.write_bytes(self.txt.as_bytes());
   }
 }
 
