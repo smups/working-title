@@ -17,7 +17,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
   //(1) Load plugins
   let lib = unsafe {
-  Library::new("target/debug/sample_plugin.dll")
+  Library::new("target/debug/libsample_plugin.so")
   }.unwrap();
 
   let linker: Symbol<extern "Rust" fn() -> Box<dyn Plugin>> = unsafe {
@@ -25,7 +25,6 @@ fn main() -> Result<(), Box<dyn Error>> {
   }.unwrap();
 
   let mut plugin = linker();
-  plugin.as_mut().start();
   plugin.as_mut().start();
 
   //(2) Connect to port
@@ -36,4 +35,5 @@ fn main() -> Result<(), Box<dyn Error>> {
     let client = Client::new(stream, addr);
   }
 
+  plugin.as_mut().stop();
 }

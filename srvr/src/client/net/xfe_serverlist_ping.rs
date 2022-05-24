@@ -32,18 +32,9 @@ use srvr_sysproto::{
 pub struct Handler;
 
 impl PackageHandler for Handler {
-  fn handle_package(mut raw_pck: RawPacketReader, stream: &mut TcpStream) -> Task {
-    //(1) Decode ping packet
-    let ping = SB_PingPacket::decode(&mut raw_pck).unwrap();
-    println!("{ping:?}");
+  fn handle_package(_raw_pck: RawPacketReader, stream: &mut TcpStream) -> Task {
+    println!("Serverlist ping");
 
-    //(2) Return pong packet
-    let pong = CB_PongPacket{payload: ping.payload};
-    let mut writer = RawPacketWriter::new(8);
-    pong.encode(&mut writer);
-    writer.write(stream).unwrap();
-
-    //(3) Kill the connection
-    Task::Die
+    Task::DoNothing
   }
 }

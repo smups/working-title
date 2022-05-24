@@ -20,12 +20,11 @@
 use std::{
   sync::mpsc::{channel, Sender, Receiver},
   thread,
-  net::{TcpStream, SocketAddr}, fmt::format
+  net::{TcpStream, SocketAddr},
 };
 
 use srvr_sysproto::{
   raw_packet::RawPacketReader,
-  packets::{SB_HandshakePacket, Packet}
 };
 
 use crate::{
@@ -59,6 +58,7 @@ impl Client {
         let client_tasks = match package.get_package_id() {
           0x00 => net::x00_handshake::Handler::handle_package(package, &mut stream),
           0x01 => net::x01_pingpong::Handler::handle_package(package, &mut stream),
+          0xfe => net::xfe_serverlist_ping::Handler::handle_package(package, &mut stream),
           _ => {DoNothing} //Request not implemented
         };
         task_list.push(client_tasks);
