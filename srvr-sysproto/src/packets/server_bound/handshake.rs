@@ -61,3 +61,14 @@ impl Packet for HandshakePacket {
   fn packet_id(&self) -> usize {PACKET_ID}
 
 }
+
+impl HandshakePacket {
+
+  pub fn new() -> Self {todo!()}
+
+  pub fn get_protocol(&self) -> usize {self.proto_ver}
+  pub fn get_server_ip(&self) -> &str {&self.server_addr}
+  pub fn get_server_port(&self) -> u16 {self.server_port}
+  pub fn next_state_code(&self) -> u8 {self.next_state}
+
+}

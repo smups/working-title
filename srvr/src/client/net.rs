@@ -17,35 +17,14 @@
   along with srvr.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-use std::error::Error;
+use std::net::TcpStream;
 
-use crate::{
-  packets::Packet,
-  raw_packet::{RawPacketReader, RawPacketWriter},
-  mc_dtypes::{MCDataType, MCString}
-};
+use srvr_sysproto::raw_packet::RawPacketReader;
 
-const PACKET_ID: usize = 0x00;
+use crate::task::Task;
 
-#[derive(Debug,Clone)]
-pub struct StatusPacket {
-  status: String
+pub trait PackageHandler {
+  fn handle_package(raw_pck: RawPacketReader, stream: &mut TcpStream) -> Task;
 }
 
-impl Packet for StatusPacket {
-
-  fn decode(buf: &mut RawPacketReader) -> Result<Self, Box<dyn Error>> {
-    Ok(StatusPacket{status: MCString::decode(buf)?.into()})
-  }
-
-  fn encode(&self, buf: &mut RawPacketWriter) {
-    MCString::from(self.status.clone()).encode(buf);
-  }
-
-  fn packet_id(&self) -> usize {PACKET_ID}
-
-}
-
-impl StatusPacket {
-  pub fn new(status: String) -> StatusPacket {StatusPacket { status: status }}
-}
+pub mod x00_handshake;

@@ -38,3 +38,9 @@ pub trait Packet {
 */
 //(A) Handshake procedure
 pub use server_bound::handshake::HandshakePacket as SBHandshakePacket;
+
+/*
+  Re-export of all Possible client-bound (outgoing) packages
+*/
+//(A) Handshake procedure
+pub use client_bound::status::StatusPacket as CBStatusPacket;
