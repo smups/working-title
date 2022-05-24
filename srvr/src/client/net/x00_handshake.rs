@@ -35,7 +35,6 @@ impl PackageHandler for Handler {
   fn handle_package(mut raw_pck: RawPacketReader, stream: &mut TcpStream) -> Task {
     //(1) Decode handshake
     let handshake = SB_HandshakePacket::decode(&mut raw_pck).unwrap();
-    println!("From helper thread: {:?}", handshake);
 
     //(2) Decide where we go next
     let next_step = match handshake.next_state_code() {

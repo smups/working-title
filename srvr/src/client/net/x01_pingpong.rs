@@ -35,7 +35,6 @@ impl PackageHandler for Handler {
   fn handle_package(mut raw_pck: RawPacketReader, stream: &mut TcpStream) -> Task {
     //(1) Decode ping packet
     let ping = SB_PingPacket::decode(&mut raw_pck).unwrap();
-    println!("From helper thread: {:?}", &ping);
 
     //(2) Return pong packet
     let pong = CB_PongPacket{payload: ping.payload};

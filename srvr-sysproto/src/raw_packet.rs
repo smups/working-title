@@ -48,8 +48,6 @@ impl RawPacketReader {
     let mut tmp_reader= RawPacketReader::from_raw(tmp_buf);
 
     let package_len: i32 = MCVarInt::decode(&mut tmp_reader)?.into();
-    println!("Pckg len: {package_len}");
-    println!("ptr: {}", tmp_reader.ptr);
     
     //Ignore legacy ping packets
     if package_len as usize == tmp_reader.ptr || package_len == 0 {

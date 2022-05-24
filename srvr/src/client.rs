@@ -20,7 +20,7 @@
 use std::{
   sync::mpsc::{channel, Sender, Receiver},
   thread,
-  net::{TcpStream, SocketAddr}
+  net::{TcpStream, SocketAddr}, fmt::format
 };
 
 use srvr_sysproto::{
@@ -45,20 +45,33 @@ pub struct Client {
 impl Client {
 
   pub fn new(mut stream: TcpStream, addr: SocketAddr) -> Self {
+    println!("New client connected @{addr:?}");
     let (tx, rx) = channel();
-    thread::spawn(move || {
+
+    thread::Builder::new().name(format!("TL_thread_@{addr:?}")).spawn(move || {
+      let mut task_list: Vec<Task> = Vec::new();
+
       'tick_loop: loop {
         //(1) Get input from the remote client
         let mut package = RawPacketReader::read(&mut stream).unwrap();
 
         //(2) Find out what kind of packet we are dealing with
-        let next_step = match package.get_package_id() {
+        let client_tasks = match package.get_package_id() {
           0x00 => net::x00_handshake::Handler::handle_package(package, &mut stream),
           0x01 => net::x01_pingpong::Handler::handle_package(package, &mut stream),
           _ => {DoNothing} //Request not implemented
         };
+        task_list.push(client_tasks);
+
+        //(3) Execute tasks
+        for task in task_list.drain(..) {
+          match task {
+            DoNothing => {}, //do nothing lol
+            Die => break 'tick_loop
+          }
+        }
       }
-    });
+    }).unwrap();
 
     Client { addr: addr, tx: tx, rx: rx }
   }

@@ -33,7 +33,6 @@ fn main() -> Result<(), Box<dyn Error>> {
   loop {
     // (1) Open connection
     let (mut stream, addr) = socket.accept()?;
-    println!("Got request from {addr:?}");
     let client = Client::new(stream, addr);
   }
 
