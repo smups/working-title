@@ -48,6 +48,14 @@ impl RawPacketReader {
     let mut tmp_reader= RawPacketReader::from_raw(tmp_buf);
 
     let package_len: i32 = MCVarInt::decode(&mut tmp_reader)?.into();
+    println!("Pckg len: {package_len}");
+    println!("ptr: {}", tmp_reader.ptr);
+    
+    //Ignore legacy ping packets
+    if package_len as usize == tmp_reader.ptr || package_len == 0 {
+      return Ok(RawPacketReader{data: Vec::new(), ptr: 0usize, id: usize::MAX})
+    }
+
     let excess = 3 - tmp_reader.ptr; //bytes that are not part of package_len
     let bytes_to_read = (package_len as usize) - excess;
 
