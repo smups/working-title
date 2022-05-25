@@ -43,6 +43,7 @@ mod mc_varlong;
 
 //(C) Text
 mod mc_string;
+mod mc_chat;
 
 //(D) Entity and world data
 mod mc_uuid;
@@ -85,6 +86,7 @@ pub use mc_varlong::MCVarLong as MCVarLong;
 
 //(C) Text
 pub use mc_string::MCString as MCString;
+pub use mc_chat::MCChat as MCChat;
 
 //(D) Entity and world data
 pub use mc_uuid::MCUuid as MCUuid;

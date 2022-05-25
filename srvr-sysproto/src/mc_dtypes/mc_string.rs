@@ -1,5 +1,3 @@
-use std::{str::Utf8Error, string::FromUtf8Error};
-
 /*
   Copyright (C) 2022 Raúl Wolters
   
@@ -18,6 +16,9 @@ use std::{str::Utf8Error, string::FromUtf8Error};
   You should have received a copy of the GNU General Public License
   along with srvr.  If not, see <http://www.gnu.org/licenses/>.
 */
+
+use std::string::FromUtf8Error;
+
 use super::{*, mc_varint::MCVarInt};
 
 #[derive(Debug, Clone)]
