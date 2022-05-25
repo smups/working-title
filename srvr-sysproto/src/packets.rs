@@ -42,6 +42,10 @@ pub trait Packet {
 pub use server_bound::handshake::HandshakePacket as SB_Handshake;
 pub use server_bound::ping::PingPacket as SB_Ping;
 
+//(B) Login procedure
+pub use server_bound::login_start::LoginStartPacket as SB_LoginStart;
+pub use server_bound::encryption_response::EncryptionResponsePacket as SB_EncryptionResponse;
+
 /*
   Re-export of all Possible client-bound (outgoing) packages
 */

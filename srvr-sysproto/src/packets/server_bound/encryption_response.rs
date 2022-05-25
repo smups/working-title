@@ -22,26 +22,42 @@ use std::error::Error;
 use crate::{
   packets::Packet,
   raw_packet::{RawPacketReader, RawPacketWriter},
-  mc_dtypes::{MCDataType, MCString}
+  mc_dtypes::{MCDataType, MCString, MCVarInt}
 };
 
 #[derive(Debug,Clone)]
-pub struct LoginStartPacket {
-  pub player_name: String
+pub struct EncryptionResponsePacket {
+  secret_key: Vec<u8>,
+  token: Vec<u8>
 }
 
-impl Packet for LoginStartPacket {
+impl Packet for EncryptionResponsePacket {
 
-  const PACKET_ID: usize = 0x00;
+  const PACKET_ID: usize = 0x01;
 
   fn decode(buf: &mut RawPacketReader)
-    -> Result<LoginStartPacket, Box<dyn Error>>
+    -> Result<EncryptionResponsePacket, Box<dyn Error>>
   {
-    Ok(LoginStartPacket{player_name: MCString::decode(buf)?.into()})
+    let secret_len: i32 = MCVarInt::decode(buf)?.into();
+    let secret_key = buf.read_bytes(secret_len as usize);
+    let token_len: i32 = MCVarInt::decode(buf)?.into();
+    let token = buf.read_bytes(token_len as usize);
+
+    Ok(EncryptionResponsePacket {
+      secret_key: secret_key, token: token
+    })
   }
 
   fn encode(&self, buf: &mut RawPacketWriter) {
-    MCString::from(self.player_name.to_string()).encode(buf);
+    //(1) Get token and key length
+    let token_len = self.token.len();
+    let key_len = self.secret_key.len();
+
+    //(2) Write in correct order
+    MCVarInt::from(key_len as i32).encode(buf);
+    buf.write_bytes(&self.secret_key);
+    MCVarInt::from(token_len as i32).encode(buf);
+    buf.write_bytes(&self.token);
   }
 
 }
