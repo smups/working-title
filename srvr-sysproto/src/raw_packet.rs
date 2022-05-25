@@ -132,13 +132,13 @@ impl RawPacketWriter {
   pub fn write(mut self, stream: &mut TcpStream) -> Result<(), Box<dyn Error>> {
     //(1) First we should encode the package ID, since its length is included
     //in the package length
-    let mut tmp_writer = RawPacketWriter::new(0);
+    let mut tmp_writer = RawPacketWriter::empty(0);
     MCVarInt::from(self.id as i32).encode(&mut tmp_writer);
     let mut id_varint_buf = tmp_writer.to_raw();
     let package_len = self.bytes.len() + id_varint_buf.len();
 
     //(2) Next, we'll encode the package length
-    tmp_writer = RawPacketWriter::new(0);
+    tmp_writer = RawPacketWriter::empty(0);
     MCVarInt::from(package_len as i32).encode(&mut tmp_writer);
     let mut full_buf = tmp_writer.to_raw();
 
@@ -151,7 +151,11 @@ impl RawPacketWriter {
     Ok(())
   }
 
-  pub fn new(size: usize) -> RawPacketWriter {
+  pub fn new(packet_id: usize) -> RawPacketWriter {
+    RawPacketWriter { bytes: Vec::new(), id: packet_id }
+  }
+
+  fn empty(size: usize) -> RawPacketWriter {
     RawPacketWriter {bytes: Vec::with_capacity(size), id: 0}
   }
 

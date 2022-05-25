@@ -67,7 +67,7 @@ impl PackageHandler for Handler {
         }}", srvr_sysproto::PROTOCOL_VERSION));
         
         //(2.2) Reply with response
-        let mut writer = RawPacketWriter::new(200);
+        let mut writer = RawPacketWriter::new(response.packet_id());
         response.encode(&mut writer);
         writer.write(stream).unwrap();
 

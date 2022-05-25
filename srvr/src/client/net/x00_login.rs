@@ -40,6 +40,7 @@ impl PackageHandler for Handler {
   fn handle_package(mut raw_pck: RawPacketReader, stream: &mut TcpStream) -> Task {
     //(1) Decode the package
     let login_req = SB_LoginStart::decode(&mut raw_pck).unwrap();
+    println!("{login_req:?}");
 
     //For now, we'll forgo encryption. Just get the username and think of an UUID
     let username = login_req.player_name;
@@ -47,7 +48,7 @@ impl PackageHandler for Handler {
 
     //(2) Reply with a Login Success packet
     let rsp = CB_LoginSuccess{uuid: uuid, player_name: username};
-    let mut writer = RawPacketWriter::new(32);
+    let mut writer = RawPacketWriter::new(rsp.packet_id());
     rsp.encode(&mut writer);
     writer.write(stream).unwrap();
 

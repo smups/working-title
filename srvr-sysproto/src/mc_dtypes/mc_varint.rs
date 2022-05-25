@@ -23,7 +23,7 @@ const CONTINUE_BIT_MASK: i32 = 0x80;
 const MAX_BYTES: usize = 5;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct MCVarInt(pub i32);
+pub struct MCVarInt(i32);
 
 impl MCDataType for MCVarInt {
 

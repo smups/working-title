@@ -52,10 +52,10 @@ impl Packet for HandshakePacket {
   }
 
   fn encode(&self, buf: &mut RawPacketWriter) {
-    MCVarInt(self.proto_ver as i32).encode(buf);
+    MCVarInt::from(self.proto_ver as i32).encode(buf);
     MCString::new(self.server_addr.clone()).encode(buf);
-    MCUShort(self.server_port).encode(buf);
-    MCVarInt(self.next_state as i32).encode(buf);
+    MCUShort::from(self.server_port).encode(buf);
+    MCVarInt::from(self.next_state as i32).encode(buf);
   }
 
 }
