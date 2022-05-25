@@ -24,7 +24,7 @@ use super::PackageHandler;
 use crate::task::Task;
 
 use srvr_sysproto::{
-  packets::{Packet, SB_PingPacket, CB_PongPacket},
+  packets::{Packet, SB_Ping, CB_Pong},
   raw_packet::{RawPacketReader, RawPacketWriter}
 };
 

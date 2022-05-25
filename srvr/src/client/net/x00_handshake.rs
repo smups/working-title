@@ -27,7 +27,7 @@ use crate::{
 };
 
 use srvr_sysproto::{
-  packets::{SB_HandshakePacket, Packet, CB_StatusPacket},
+  packets::{SB_Handshake, Packet, CB_Status},
   raw_packet::{RawPacketReader, RawPacketWriter}
 };
 
@@ -37,7 +37,7 @@ pub struct Handler;
 impl PackageHandler for Handler {
   fn handle_package(mut raw_pck: RawPacketReader, stream: &mut TcpStream) -> Task {
     //(1) Decode handshake
-    let handshake = SB_HandshakePacket::decode(&mut raw_pck).unwrap();
+    let handshake = SB_Handshake::decode(&mut raw_pck).unwrap();
     println!("{handshake:?}");
 
     //(2) Decide where we go next
@@ -46,7 +46,7 @@ impl PackageHandler for Handler {
         //Code 1: Status Request, for now, we send a basic JSON response:
 
         //(2.1) Create sample response
-        let response = CB_StatusPacket::new(format!("{{
+        let response = CB_Status::new(format!("{{
           \"version\": {{
             \"name\": \"1.18.2\",
             \"protocol\": {}

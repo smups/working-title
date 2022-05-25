@@ -24,7 +24,7 @@ use super::PackageHandler;
 use crate::task::Task;
 
 use srvr_sysproto::{
-  packets::{Packet, SB_PingPacket, CB_PongPacket},
+  packets::{Packet, SB_Ping, CB_Pong},
   raw_packet::{RawPacketReader, RawPacketWriter}
 };
 
@@ -34,11 +34,11 @@ pub struct Handler;
 impl PackageHandler for Handler {
   fn handle_package(mut raw_pck: RawPacketReader, stream: &mut TcpStream) -> Task {
     //(1) Decode ping packet
-    let ping = SB_PingPacket::decode(&mut raw_pck).unwrap();
+    let ping = SB_Ping::decode(&mut raw_pck).unwrap();
     println!("{ping:?}");
 
     //(2) Return pong packet
-    let pong = CB_PongPacket{payload: ping.payload};
+    let pong = CB_Pong{payload: ping.payload};
     let mut writer = RawPacketWriter::new(8);
     pong.encode(&mut writer);
     writer.write(stream).unwrap();

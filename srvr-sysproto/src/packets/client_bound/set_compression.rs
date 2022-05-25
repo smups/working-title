@@ -17,12 +17,33 @@
   along with srvr.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-//(A) Handshaking
-pub mod status;
-pub mod pong;
+use std::error::Error;
 
-//(B) Login
-pub mod login_disconnect;
-pub mod encryption_request;
-pub mod login_success;
-pub mod set_compression;
+use crate::{
+  packets::Packet,
+  raw_packet::{RawPacketReader, RawPacketWriter},
+  mc_dtypes::{MCDataType, MCLong, MCVarInt}
+};
+
+#[derive(Debug,Clone)]
+pub struct SetCompressionPacket {
+  pub threshold_len: usize
+}
+
+impl Packet for SetCompressionPacket {
+
+  const PACKET_ID: usize = 0x03;
+
+  fn decode(buf: &mut RawPacketReader)
+    -> Result<SetCompressionPacket, Box<dyn Error>>
+  {
+    Ok(SetCompressionPacket{
+      threshold_len: i32::from(MCVarInt::decode(buf)?) as usize
+    })
+  }
+
+  fn encode(&self, buf: &mut RawPacketWriter) {
+    MCVarInt::from(self.threshold_len as i32).encode(buf);
+  }
+
+}
