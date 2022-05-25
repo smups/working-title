@@ -48,3 +48,6 @@ pub use server_bound::ping::PingPacket as SB_PingPacket;
 //(A) Handshake procedure
 pub use client_bound::status::StatusPacket as CB_StatusPacket;
 pub use client_bound::pong::PongPacket as CB_PongPacket;
+
+//(B) Login procedure
+pub use client_bound::login_success::LoginSuccessPacket as CB_LoginSuccess;

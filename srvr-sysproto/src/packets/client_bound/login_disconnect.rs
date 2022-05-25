@@ -17,11 +17,31 @@
   along with srvr.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-//(A) Handshaking
-pub mod status;
-pub mod pong;
+use std::error::Error;
 
-//(B) Login
-pub mod login_disconnect;
-pub mod encryption_request;
-pub mod login_success;
+use crate::{
+  packets::Packet,
+  raw_packet::{RawPacketReader, RawPacketWriter},
+  mc_dtypes::{MCDataType, MCChat}
+};
+
+#[derive(Debug,Clone)]
+pub struct LoginDisconnectPacket {
+  pub reason: MCChat
+}
+
+impl Packet for LoginDisconnectPacket {
+
+  const PACKET_ID: usize = 0x00;
+
+  fn decode(buf: &mut RawPacketReader)
+    -> Result<LoginDisconnectPacket, Box<dyn Error>>
+  {
+    Ok(LoginDisconnectPacket{reason: MCChat::decode(buf)?})
+  }
+
+  fn encode(&self, buf: &mut RawPacketWriter) {
+    self.reason.encode(buf);
+  }
+
+}
