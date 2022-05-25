@@ -10,3 +10,4 @@ libloading = "*"
 srvr-sysplugin = { path = "../srvr-sysplugin", version = "*" }
 srvr-sysproto = {path = "../srvr-sysproto", version = "*"}
 serde = "*"
+rand = "*"

@@ -22,7 +22,7 @@ use std::error::Error;
 use crate::{
   packets::Packet,
   raw_packet::{RawPacketReader, RawPacketWriter},
-  mc_dtypes::{MCDataType, MCString, MCVarInt}
+  mc_dtypes::{MCDataType, MCVarInt}
 };
 
 #[derive(Debug,Clone)]

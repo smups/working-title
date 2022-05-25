@@ -68,10 +68,10 @@ impl Client {
             0xfe => net::xfe_serverlist_ping::Handler::handle_package(package, &mut stream),
             _ => DoNothing
           }},
-          Login => {
-            //Not implemented
-            DoNothing
-          },
+          Login => { match package.get_package_id() {
+            0x00 => net::x00_login::Handler::handle_package(package, &mut stream),
+            _ => DoNothing
+          }},
           Play => {
             //Not implemented yet
             DoNothing
