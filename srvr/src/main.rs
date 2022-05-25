@@ -1,6 +1,6 @@
 use std::{
   error::Error,
-  net::TcpListener,
+  net::TcpListener, time::Duration,
 };
 
 use libloading::*;
@@ -8,6 +8,9 @@ use libloading::*;
 use srvr_sysplugin::Plugin;
 
 use crate::client::Client;
+
+//Tick duration
+pub const TICK_DURATION: Duration = Duration::from_millis(50);
 
 pub mod client;
 pub mod task;

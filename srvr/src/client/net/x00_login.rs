@@ -48,6 +48,7 @@ impl PackageHandler for Handler {
 
     //(2) Reply with a Login Success packet
     let rsp = CB_LoginSuccess{uuid: uuid, player_name: username};
+    println!("{rsp:?}");
     let mut writer = RawPacketWriter::new(rsp.packet_id());
     rsp.encode(&mut writer);
     writer.write(stream).unwrap();

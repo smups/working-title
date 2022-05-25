@@ -65,6 +65,7 @@ impl PackageHandler for Handler {
             \"text\": \"Hello world\"
           }}
         }}", srvr_sysproto::PROTOCOL_VERSION));
+        println!("{response:?}");
         
         //(2.2) Reply with response
         let mut writer = RawPacketWriter::new(response.packet_id());

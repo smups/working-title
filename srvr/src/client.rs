@@ -21,6 +21,7 @@ use std::{
   sync::mpsc::{channel, Sender, Receiver},
   thread,
   net::{TcpStream, SocketAddr},
+  time::{Instant, Duration},
 };
 
 use srvr_sysproto::{
@@ -50,7 +51,11 @@ impl Client {
     let (tx, rx) = channel();
 
     thread::Builder::new().name(format!("TL_thread_@{addr:?}")).spawn(move || {
+      //Task list - is emptied each tick loop
       let mut task_list: Vec<Task> = Vec::new();
+
+      //Timing states
+      let mut last_tick = Instant::now();
 
       //Flag to differentiate between login, handshake and play states
       use state::PlayState::*;
@@ -87,6 +92,15 @@ impl Client {
             SetServerState(new_state) => state = new_state
           }
         }
+
+        /* (4)
+          To prevent overloading the server we must wait if this tick-loop was
+          particularly quick.
+        */
+        if last_tick.elapsed() < crate::TICK_DURATION {
+          thread::sleep(crate::TICK_DURATION - last_tick.elapsed());
+        }
+        last_tick = Instant::now(); //update last tick
       }
 
       //Tick-loop ended, client is dead
