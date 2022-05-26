@@ -17,15 +17,31 @@
   along with srvr.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-//(A) Handshaking
-pub mod status;
-pub mod pong;
+use std::error::Error;
 
-//(B) Login
-pub mod login_disconnect;
-pub mod encryption_request;
-pub mod login_success;
-pub mod set_compression;
+use crate::{
+  packets::Packet,
+  raw_packet::{RawPacketReader, RawPacketWriter},
+  mc_dtypes::{MCDataType, MCLong}
+};
 
-//(C) Play
-pub mod join_game;
+#[derive(Debug,Clone)]
+pub struct JoinGamePacket {
+  entity_id: u32,
+  hardcore: bool,
+  gamemode: u8,
+  prev_gamemode: u8,
+  world_count: usize,
+  world_names: Vec<String>,
+  //world_codecs:,
+  //spawn_world_codec,
+  spawn_world_name: String,
+  seed: u64,
+  max_players: usize,
+  view_distance: usize,
+  sim_distance: usize,
+  reduced_debug_info: bool,
+  enable_respawn_screen: bool,
+  debug: bool,
+  flat: bool
+}

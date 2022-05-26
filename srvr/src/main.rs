@@ -12,6 +12,7 @@ use crate::client::Client;
 //Tick duration
 pub const TICK_DURATION: Duration = Duration::from_millis(50);
 
+pub mod state;
 pub mod client;
 pub mod task;
 

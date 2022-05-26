@@ -58,3 +58,6 @@ pub use client_bound::login_disconnect::LoginDisconnectPacket as CB_LoginDisconn
 pub use client_bound::encryption_request::EncryptionRequestPacket as CB_EncryptionRequest;
 pub use client_bound::login_success::LoginSuccessPacket as CB_LoginSuccess;
 pub use client_bound::set_compression::SetCompressionPacket as CB_SetCompression;
+
+//(C) Play
+pub use client_bound::join_game::JoinGamePacket as CB_JoinGame;

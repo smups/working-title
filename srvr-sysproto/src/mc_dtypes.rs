@@ -48,6 +48,7 @@ mod mc_chat;
 //(D) Entity and world data
 mod mc_uuid;
 mod mc_position;
+mod mc_nbt;
 
 pub trait MCDataType {
   fn decode(buf: &mut RawPacketReader) -> Result<Self, Err> where Self: Sized;
@@ -91,3 +92,4 @@ pub use mc_chat::MCChat as MCChat;
 //(D) Entity and world data
 pub use mc_uuid::MCUuid as MCUuid;
 pub use mc_position::MCPosition as MCPosition;
+pub use mc_nbt::NbtTag as MCNBT;

@@ -64,6 +64,7 @@ impl Client {
       'tick_loop: loop {
         //(1) Get input from the remote client
         let mut package = RawPacketReader::read(&mut stream).unwrap();
+        println!("{package:?}");
 
         //(2) Find out what kind of packet we are dealing with
         let client_task = match state {
@@ -96,7 +97,10 @@ impl Client {
         /* (4)
           To prevent overloading the server we must wait if this tick-loop was
           particularly quick.
+
+          IGNORE this if we are not in the play state!
         */
+        if state != Play {continue;}
         if last_tick.elapsed() < crate::TICK_DURATION {
           thread::sleep(crate::TICK_DURATION - last_tick.elapsed());
         }
