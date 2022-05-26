@@ -87,7 +87,10 @@ impl From<MCVarInt> for i32 {
 #[cfg(test)]
 mod mc_varint_test{
 
+  use rand::{self, Rng};
+
   use crate::{
+    correctness_test,
     mc_dtypes::{MCDataType, mc_varint::MCVarInt},
     raw_packet::{RawPacketReader, RawPacketWriter}
   };
@@ -142,4 +145,15 @@ mod mc_varint_test{
     write_test!(vec![0xff,0xff,0xff,0xff,0x0f], -1);
     write_test!(vec![0x80,0x80,0x80,0x80,0x08], -2147483648);
   }
+
+  #[test]
+  fn correctness_test() {
+    let mut rng = rand::thread_rng();
+    //Try 100 random bytes
+    for _ in 0..100 {
+      let num: i32 = rng.gen();
+      correctness_test!(crate::mc_dtypes::MCVarInt, num);
+    }
+  }
+  
 }
