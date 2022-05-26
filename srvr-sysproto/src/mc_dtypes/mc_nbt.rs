@@ -47,7 +47,7 @@ fn encode_nbt_tag_name(tag_name: Option<String>, writer: &mut RawPacketWriter) {
     Some(name) => name.len()
   };
 
-  //(2) Write name prefix as unsigned 16-bit big endian int
+  //(2) Write name length prefix as unsigned 16-bit big endian int
   MCUShort::from(name_len as u16).encode(writer);
 
   //(3) Write raw bytes of the string
@@ -183,8 +183,104 @@ impl MCDataType for NbtTag {
     })
   }
 
-  fn encode(&self, buf: &mut RawPacketWriter) {
-    todo!()
+  fn encode(&self, writer: &mut RawPacketWriter) {
+    use NbtTag::*;
+
+    //(1) Write type byte and tag name
+    let nbt_type = writer.write_byte(self.type_code());
+    let tag_name = match self {
+      End => None,
+      Byte(name,_) | Short(name,_) | Int(name,_) | Long(name,_) |
+      Float(name,_) | Double(name,_) | ByteArray(name,_) | String(name,_) |
+      List(name,_) | Compound(name,_) | IntArray(name,_) | LongArray(name,_)
+      => name.clone()
+    };
+    encode_nbt_tag_name(tag_name, writer);
+
+    //(2) Recursively encode the structure
+    match self {
+      End => {}, //do nothing,
+      Byte(_,byte) => MCByte::from(*byte).encode(writer),
+      Short(_, short) => MCShort::from(*short).encode(writer),
+      Int(_, int) => MCInt::from(*int).encode(writer),
+      Long(_, long) => MCLong::from(*long).encode(writer),
+      Float(_, float) => MCFloat::from(*float).encode(writer),
+      Double(_, double) => MCDouble::from(*double).encode(writer),
+      ByteArray(_, array) => {
+        //First we write the length of the array, then the elements
+        MCInt::from(array.len() as i32).encode(writer);
+        writer.write_bytes(array);
+      },
+      String(_, string) => {
+        //Again, we first encode the length of the string
+        MCShort::from(string.len() as i16).encode(writer);
+        writer.write_bytes(string.as_bytes());
+      },
+      List(_, list) => {
+        //(1) First we determine the list type, and write it
+        let list_type = match list.len() {
+          0 => &End,
+          _ => list.get(0).unwrap()
+        };
+        writer.write_byte(list_type.type_code());
+
+        //(2) Write the list length
+        MCInt::from(list.len() as i32).encode(writer);
+
+        //(3) Write all elements in the list
+        for item in list {
+          item.encode(writer);
+        }
+      },
+      Compound(_, compound) => {
+        //(1) Write the compound length
+        MCInt::from(compound.len() as i32).encode(writer);
+
+        //(2) Write all elements in compound
+        for element in compound {
+          element.encode(writer);
+        }
+      },
+      IntArray(_,array) => {
+        //(1) Write the array length
+        MCInt::from(array.len() as i32).encode(writer);
+
+        //(2) Write all elements in array
+        for entry in array {
+          MCInt::from(*entry).encode(writer);
+        }
+      },
+      LongArray(_, array) => {
+        //(1) Again, we first write the array length
+        MCInt::from(array.len() as i32).encode(writer);
+
+        //(2) Write all elements in the array
+        for entry in array {
+          MCLong::from(*entry).encode(writer);
+        }
+      }
+    };
   }
 
+}
+
+impl NbtTag {
+  const fn type_code(&self) -> u8 {
+    use NbtTag::*;
+    match self {
+      End             => 0,
+      Byte(_,_)       => 1,
+      Short(_,_)      => 2,
+      Int(_,_)        => 3,
+      Long(_,_)       => 4,
+      Float(_,_)      => 5,
+      Double(_,_)     => 6,
+      ByteArray(_,_)  => 7,
+      String(_,_)     => 8,
+      List(_,_)       => 9,
+      Compound(_,_)   => 10,
+      IntArray(_,_)   => 11,
+      LongArray(_,_)  => 12
+    }
+  }
 }
