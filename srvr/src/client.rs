@@ -18,7 +18,6 @@
 */
 
 use std::{
-  sync::mpsc::{channel, Sender, Receiver},
   thread,
   net::{TcpStream, SocketAddr},
   time::Instant,
@@ -30,7 +29,8 @@ use srvr_sysproto::{
 
 use crate::{
   task::Task::{self, *},
-  client::net::PackageHandler
+  client::net::PackageHandler,
+  wire::Wire
 };
 
 //Module structure
@@ -39,20 +39,24 @@ pub mod state;
 
 #[derive(Debug)]
 pub struct Client {
-  addr: SocketAddr,
-  tx: Sender::<Vec<Task>>,
-  rx: Receiver::<Vec<Task>>
+  addr: SocketAddr
 }
 
 impl Client {
 
-  pub fn new(mut stream: TcpStream, addr: SocketAddr) -> Self {
+  pub fn new(mut stream: TcpStream, addr: SocketAddr, global_wire: &mut Wire<Task>)
+    -> Self
+  {
     println!("New client connected @{addr:?}");
-    let (tx, rx) = channel();
+    let global_wire_connection = global_wire.connect();
 
     thread::Builder::new().name(format!("TL_thread_@{addr:?}")).spawn(move || {
+
       //Task list - is emptied each tick loop
       let mut task_list: Vec<Task> = Vec::new();
+
+      //Connections to the main server thread
+      let mut listen_global = global_wire_connection;
 
       //Thread-local data
 
@@ -64,7 +68,10 @@ impl Client {
       let mut state = HandShake;
 
       'tick_loop: loop {
-        //(1) Execute tasks from previous tick
+        //(1) Listen for task from server
+        task_list.push(listen_global.poll().unwrap_or(DoNothing));
+
+        //(2) Execute tasks from previous tick
         for task in task_list.drain(..) {
           match task {
             DoNothing => {}, //do nothing lol
@@ -74,11 +81,11 @@ impl Client {
           }
         }
 
-        //(2) Get input from the remote client
+        //(3) Get input from the remote client
         let mut package = RawPacketReader::read(&mut stream).unwrap();
         println!("{package:?}");
 
-        //(3) Find out what kind of packet we are dealing with
+        //(4) Find out what kind of packet we are dealing with
         let mut client_tasks = match state {
           HandShake => { match package.get_package_id() {
             0x00 => net::x00_handshake::Handler::handle_package(package, &mut stream),
@@ -98,7 +105,7 @@ impl Client {
         };
         task_list.append(&mut client_tasks);
 
-        /* (4)
+        /* (5)
           To prevent overloading the server we must wait if this tick-loop was
           particularly quick.
 
@@ -115,7 +122,7 @@ impl Client {
       println!("Client disconnected, ending tickoop {}",thread::current().name().unwrap());
     }).unwrap();
 
-    Client { addr: addr, tx: tx, rx: rx }
+    Client { addr: addr }
   }
 
 }

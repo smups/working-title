@@ -44,6 +44,10 @@ impl<T: 'static> Wire<T> where T: Send + Clone {
     self.queues.push(queue.clone());
     WireListener{ queue: queue }
   }
+
+  pub fn new() -> Wire<T> {
+    Wire { queues: Vec::new() }
+  }
 }
 
 #[derive(Debug, Clone)]
