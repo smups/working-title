@@ -38,6 +38,7 @@ mod mc_float;
 mod mc_double;
 
 //(B) variable-length numeric types
+mod mc_array;
 mod mc_varint;
 mod mc_varlong;
 
@@ -82,6 +83,7 @@ pub use mc_float::MCFloat as MCFloat;
 pub use mc_double::MCDouble as MCDouble;
 
 //(B) variable-length numeric types
+pub use mc_array::MCArray as MCArray;
 pub use mc_varint::MCVarInt as MCVarInt;
 pub use mc_varlong::MCVarLong as MCVarLong;
 
@@ -92,4 +94,4 @@ pub use mc_chat::MCChat as MCChat;
 //(D) Entity and world data
 pub use mc_uuid::MCUuid as MCUuid;
 pub use mc_position::MCPosition as MCPosition;
-pub use mc_nbt::NbtTag as MCNBT;
+pub use mc_nbt::NbtTag as MCNbt;
