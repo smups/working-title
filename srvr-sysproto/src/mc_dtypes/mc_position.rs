@@ -80,34 +80,37 @@ impl MCDataType for MCPosition {
   }
 }
 
+impl From<(i32, i32, i16)> for MCPosition {
+  fn from(tup: (i32, i32, i16)) -> Self {MCPosition(tup.0, tup.1, tup.2)}
+}
+
+impl From<MCPosition> for (i32, i32, i16) {
+  fn from(pos: MCPosition) -> Self {(pos.0, pos.1, pos.2)}
+}
+
 #[cfg(test)]
 mod mc_position_test {
 
-  use crate::{
-    mc_dtypes::{MCDataType, mc_position::MCPosition},
-    raw_packet::{RawPacketReader, RawPacketWriter}
-  };
+  use rand::{self, Rng};
 
-  macro_rules! io_correctness_test {
-    ($x:expr, $y:expr, $z:expr) => {
-      let test_pos = MCPosition(($x), ($y), ($z));
-      let mut test_write_buf = RawPacketWriter::from_raw(vec![0u8;8]);
-      test_pos.encode(&mut test_write_buf);
-
-      let mut test_read_buf = RawPacketReader::from_raw(test_write_buf.to_raw());
-      let rw_test_pos = MCPosition::decode(&mut test_read_buf).unwrap();
-      assert_eq!(test_pos, rw_test_pos);
-    };
-  }
+  use crate::correctness_test;
 
   #[test]
-  fn io_correctness_test() {
-    for x in [-33554432, 0, 33554431] {
-      for z in [-33554432, 0, 33554431] {
-        for y in [-2048, 0, 2047] {
-          io_correctness_test!(x, z, y);
-        }
-      }
+  fn correctness_test() {
+    let mut rng = rand::thread_rng();
+
+    //Some constants
+    const I26_MIN: i32 = -33554432;
+    const I26_MAX: i32 = 33554431;
+    const I12_MIN: i16 = -2048;
+    const I12_MAX: i16 = 2047;
+
+    for _ in 0..100 {
+      let x: i32 = rng.gen_range(I26_MIN..I26_MAX);
+      let y: i16 = rng.gen_range(I12_MIN..I12_MAX);
+      let z: i32 = rng.gen_range(I26_MIN..I26_MAX);
+      let pos = (x,z,y);
+      correctness_test!(crate::mc_dtypes::MCPosition, pos);
     }
   }
 
