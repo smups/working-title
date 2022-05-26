@@ -19,7 +19,7 @@
 
 use super::*;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct MCUByte(u8);
 
 impl MCDataType for MCUByte {
@@ -39,4 +39,24 @@ impl From<u8> for MCUByte{
 
 impl From<MCUByte> for u8 {
   fn from(val: MCUByte) -> Self {val.0}
+}
+
+#[cfg(test)]
+mod mc_double_test {
+
+  use rand::{self, Rng};
+
+  #[macro_use]
+  use crate::correctness_test;
+
+  #[test]
+  fn correctness_test() {
+    let mut rng = rand::thread_rng();
+    //Try 100 random bytes
+    for _ in 0..100 {
+      let num: u8 = rng.gen();
+      correctness_test!(crate::mc_dtypes::MCUByte, num);
+    }
+  }
+
 }
