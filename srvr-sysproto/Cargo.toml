@@ -9,3 +9,6 @@ edition = "2021"
 byteorder = "*"
 serde = "*"
 serde_json = "*"
+
+[dev-dependencies]
+rand = "*"

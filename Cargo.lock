@@ -133,6 +133,7 @@ name = "srvr-sysproto"
 version = "0.1.0"
 dependencies = [
  "byteorder",
+ "rand",
  "serde",
  "serde_json",
 ]

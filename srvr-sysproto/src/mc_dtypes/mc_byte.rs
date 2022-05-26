@@ -19,7 +19,7 @@
 
 use super::*;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct MCByte(i8);
 
 impl MCDataType for MCByte {
@@ -39,4 +39,25 @@ impl From<i8> for MCByte{
 
 impl From<MCByte> for i8 {
   fn from(val: MCByte) -> Self {val.0}
+}
+
+#[cfg(test)]
+mod mc_byte_test {
+
+  use rand::{self, Rng};
+
+  #[macro_use]
+  use crate::correctness_test;
+
+  #[test]
+  fn correctness_test() {
+    use crate::mc_dtypes::MCByte;
+    let mut rng = rand::thread_rng();
+    //Try 100 random bytes
+    for _ in 0..100 {
+      let num: i8 = rng.gen();
+      correctness_test!(MCByte, num);
+    }
+  }
+
 }

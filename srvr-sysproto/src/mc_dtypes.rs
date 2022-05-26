@@ -95,3 +95,27 @@ pub use mc_chat::MCChat as MCChat;
 pub use mc_uuid::MCUuid as MCUuid;
 pub use mc_position::MCPosition as MCPosition;
 pub use mc_nbt::NbtTag as MCNbt;
+
+/*
+  Useful macros for testing
+*/
+
+#[macro_export]
+macro_rules! correctness_test {
+  ($mc_dtype:ty, $data:expr) => {
+    use crate::{
+      raw_packet::{RawPacketReader, RawPacketWriter},
+      mc_dtypes::MCDataType
+    };
+
+    //Encode the type
+    let before_io = <$mc_dtype>::from(($data));
+    let mut buf = RawPacketWriter::new(0);
+    before_io.encode(&mut buf);
+
+    //Decode the type
+    let mut tmp_read = RawPacketReader::from_raw(buf.to_raw());
+    let after_io = <$mc_dtype>::decode(&mut tmp_read).unwrap();
+    assert_eq!(before_io, after_io);
+  };
+}

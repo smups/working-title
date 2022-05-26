@@ -89,15 +89,15 @@ mod mc_position_test {
   };
 
   macro_rules! io_correctness_test {
-      ($x:expr, $y:expr, $z:expr) => {
-        let test_pos = MCPosition(($x), ($y), ($z));
-        let mut test_write_buf = RawPacketWriter::from_raw(vec![0u8;8]);
-        test_pos.encode(&mut test_write_buf);
+    ($x:expr, $y:expr, $z:expr) => {
+      let test_pos = MCPosition(($x), ($y), ($z));
+      let mut test_write_buf = RawPacketWriter::from_raw(vec![0u8;8]);
+      test_pos.encode(&mut test_write_buf);
 
-        let mut test_read_buf = RawPacketReader::from_raw(test_write_buf.to_raw());
-        let rw_test_pos = MCPosition::decode(&mut test_read_buf).unwrap();
-        assert_eq!(test_pos, rw_test_pos);
-      };
+      let mut test_read_buf = RawPacketReader::from_raw(test_write_buf.to_raw());
+      let rw_test_pos = MCPosition::decode(&mut test_read_buf).unwrap();
+      assert_eq!(test_pos, rw_test_pos);
+    };
   }
 
   #[test]
