@@ -21,7 +21,7 @@ use byteorder::{BigEndian, ByteOrder};
 
 use super::*;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct MCFloat(f32);
 
 impl MCDataType for MCFloat {
@@ -41,4 +41,24 @@ impl From<f32> for MCFloat{
 
 impl From<MCFloat> for f32 {
   fn from(val: MCFloat) -> Self {val.0}
+}
+
+#[cfg(test)]
+mod mc_double_test {
+
+  use rand::{self, Rng};
+
+  #[macro_use]
+  use crate::correctness_test;
+
+  #[test]
+  fn correctness_test() {
+    let mut rng = rand::thread_rng();
+    //Try 100 random bytes
+    for _ in 0..100 {
+      let num: f32 = rng.gen();
+      correctness_test!(crate::mc_dtypes::MCFloat, num);
+    }
+  }
+
 }
