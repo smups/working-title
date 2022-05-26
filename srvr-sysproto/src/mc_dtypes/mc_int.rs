@@ -21,7 +21,7 @@ use byteorder::{BigEndian, ByteOrder};
 
 use super::*;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct MCInt(i32);
 
 impl MCDataType for MCInt {
@@ -41,4 +41,24 @@ impl From<i32> for MCInt{
 
 impl From<MCInt> for i32 {
   fn from(val: MCInt) -> Self {val.0}
+}
+
+#[cfg(test)]
+mod mc_double_test {
+
+  use rand::{self, Rng};
+
+  #[macro_use]
+  use crate::correctness_test;
+
+  #[test]
+  fn correctness_test() {
+    let mut rng = rand::thread_rng();
+    //Try 100 random bytes
+    for _ in 0..100 {
+      let num: i32 = rng.gen();
+      correctness_test!(crate::mc_dtypes::MCInt, num);
+    }
+  }
+
 }
