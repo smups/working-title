@@ -21,7 +21,7 @@ use byteorder::{BigEndian, ByteOrder};
 
 use super::*;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct MCUShort(u16);
 
 impl MCDataType for MCUShort {
@@ -41,4 +41,24 @@ impl From<u16> for MCUShort{
 
 impl From<MCUShort> for u16 {
   fn from(val: MCUShort) -> Self {val.0}
+}
+
+#[cfg(test)]
+mod mc_double_test {
+
+  use rand::{self, Rng};
+
+  #[macro_use]
+  use crate::correctness_test;
+
+  #[test]
+  fn correctness_test() {
+    let mut rng = rand::thread_rng();
+    //Try 100 random bytes
+    for _ in 0..100 {
+      let num: u16 = rng.gen();
+      correctness_test!(crate::mc_dtypes::MCUShort, num);
+    }
+  }
+
 }
