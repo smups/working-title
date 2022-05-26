@@ -32,7 +32,7 @@ fn main() -> Result<(), Box<dyn Error>> {
   plugin.as_mut().start();
 
   //(2) Connect to port
-  let socket = TcpListener::bind("127.0.0.1:25565")?;
+  let socket = TcpListener::bind("192.168.2.11:25565")?;
   loop {
     // (1) Open connection
     let (mut stream, addr) = socket.accept()?;

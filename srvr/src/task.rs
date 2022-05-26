@@ -22,9 +22,10 @@ use crate::client::state::PlayState;
 //Modules declared below are task-handlers for more complicated tasks
 
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub enum Task {
   DoNothing,
   Die,
-  SetServerState(PlayState)
+  SetServerState(PlayState),
+  SpawnPlayer{player_name: String, uuid: u128}
 }

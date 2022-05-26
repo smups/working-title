@@ -21,7 +21,7 @@ use std::{
   sync::mpsc::{channel, Sender, Receiver},
   thread,
   net::{TcpStream, SocketAddr},
-  time::{Instant, Duration},
+  time::Instant,
 };
 
 use srvr_sysproto::{
@@ -54,6 +54,8 @@ impl Client {
       //Task list - is emptied each tick loop
       let mut task_list: Vec<Task> = Vec::new();
 
+      //Thread-local data
+
       //Timing states
       let mut last_tick = Instant::now();
 
@@ -62,37 +64,38 @@ impl Client {
       let mut state = HandShake;
 
       'tick_loop: loop {
-        //(1) Get input from the remote client
-        let mut package = RawPacketReader::read(&mut stream).unwrap();
-        println!("{package:?}");
-
-        //(2) Find out what kind of packet we are dealing with
-        let client_task = match state {
-          HandShake => { match package.get_package_id() {
-            0x00 => net::x00_handshake::Handler::handle_package(package, &mut stream),
-            0x01 => net::x01_pingpong::Handler::handle_package(package, &mut stream),
-            0xfe => net::xfe_serverlist_ping::Handler::handle_package(package, &mut stream),
-            _ => DoNothing
-          }},
-          Login => { match package.get_package_id() {
-            0x00 => net::x00_login::Handler::handle_package(package, &mut stream),
-            _ => DoNothing
-          }},
-          Play => {
-            //Not implemented yet
-            DoNothing
-          }
-        };
-        task_list.push(client_task);
-
-        //(3) Execute tasks
+        //(1) Execute tasks from previous tick
         for task in task_list.drain(..) {
           match task {
             DoNothing => {}, //do nothing lol
             Die => break 'tick_loop,
-            SetServerState(new_state) => state = new_state
+            SetServerState(new_state) => state = new_state,
+            SpawnPlayer{player_name: name, uuid: uuid} => {} //do nothing
           }
         }
+
+        //(2) Get input from the remote client
+        let mut package = RawPacketReader::read(&mut stream).unwrap();
+        println!("{package:?}");
+
+        //(3) Find out what kind of packet we are dealing with
+        let mut client_tasks = match state {
+          HandShake => { match package.get_package_id() {
+            0x00 => net::x00_handshake::Handler::handle_package(package, &mut stream),
+            0x01 => net::x01_pingpong::Handler::handle_package(package, &mut stream),
+            0xfe => net::xfe_serverlist_ping::Handler::handle_package(package, &mut stream),
+            _ => vec![DoNothing]
+          }},
+          Login => { match package.get_package_id() {
+            0x00 => net::x00_login::Handler::handle_package(package, &mut stream),
+            _ => vec![DoNothing]
+          }},
+          Play => {
+            //Not implemented yet
+            vec![DoNothing]
+          }
+        };
+        task_list.append(&mut client_tasks);
 
         /* (4)
           To prevent overloading the server we must wait if this tick-loop was

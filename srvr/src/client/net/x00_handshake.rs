@@ -35,7 +35,9 @@ use srvr_sysproto::{
 pub struct Handler;
 
 impl PackageHandler for Handler {
-  fn handle_package(mut raw_pck: RawPacketReader, stream: &mut TcpStream) -> Task {
+  fn handle_package(mut raw_pck: RawPacketReader, stream: &mut TcpStream)
+    -> Vec<Task>
+  {
     //(1) Decode handshake
     let handshake = SB_Handshake::decode(&mut raw_pck).unwrap();
     println!("{handshake:?}");
@@ -73,11 +75,11 @@ impl PackageHandler for Handler {
         writer.write(stream).unwrap();
 
         //(R) Do nothing
-        Task::DoNothing
+        vec![Task::DoNothing]
       } 0x02 => {
         //Code 2: Login Request, change login flag to true
-        Task::SetServerState(Login)
-      } _ => Task::DoNothing
+        vec![Task::SetServerState(Login)]
+      } _ => vec![Task::Die]
     };
 
     return next_step;

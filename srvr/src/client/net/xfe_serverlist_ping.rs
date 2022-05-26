@@ -32,9 +32,8 @@ use srvr_sysproto::{
 pub struct Handler;
 
 impl PackageHandler for Handler {
-  fn handle_package(_raw_pck: RawPacketReader, stream: &mut TcpStream) -> Task {
+  fn handle_package(_: RawPacketReader, _: &mut TcpStream) -> Vec<Task> {
     println!("Serverlist ping");
-
-    Task::DoNothing
+    vec![Task::DoNothing]
   }
 }

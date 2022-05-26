@@ -179,7 +179,7 @@ impl MCDataType for NbtTag {
           LongArray(tag_name, list)
         }
       },
-      other => {End} //do nothing for now
+      _other => {End} //do nothing for now
     })
   }
 

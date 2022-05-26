@@ -37,7 +37,9 @@ use srvr_sysproto::{
 pub struct Handler;
 
 impl PackageHandler for Handler {
-  fn handle_package(mut raw_pck: RawPacketReader, stream: &mut TcpStream) -> Task {
+  fn handle_package(mut raw_pck: RawPacketReader, stream: &mut TcpStream)
+    -> Vec<Task>
+  {
     //(1) Decode the package
     let login_req = SB_LoginStart::decode(&mut raw_pck).unwrap();
     println!("{login_req:?}");
@@ -47,13 +49,16 @@ impl PackageHandler for Handler {
     let uuid = rand::thread_rng().gen::<u128>();
 
     //(2) Reply with a Login Success packet
-    let rsp = CB_LoginSuccess{uuid: uuid, player_name: username};
+    let rsp = CB_LoginSuccess{uuid: uuid.clone(), player_name: username.clone()};
     println!("{rsp:?}");
     let mut writer = RawPacketWriter::new(rsp.packet_id());
     rsp.encode(&mut writer);
     writer.write(stream).unwrap();
 
     //(3) Give command to change server state to play
-    Task::SetServerState(Play)
+    vec![
+      Task::SetServerState(Play),
+      Task::SpawnPlayer{player_name: username, uuid: uuid}
+    ]
   }
 }

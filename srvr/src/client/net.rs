@@ -24,7 +24,7 @@ use srvr_sysproto::raw_packet::RawPacketReader;
 use crate::task::Task;
 
 pub trait PackageHandler {
-  fn handle_package(raw_pck: RawPacketReader, stream: &mut TcpStream) -> Task;
+  fn handle_package(raw_pck: RawPacketReader, stream: &mut TcpStream) -> Vec<Task>;
 }
 
 /*
