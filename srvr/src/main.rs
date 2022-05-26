@@ -15,6 +15,7 @@ pub const TICK_DURATION: Duration = Duration::from_millis(50);
 pub mod state;
 pub mod client;
 pub mod task;
+pub mod wire;
 
 fn main() -> Result<(), Box<dyn Error>> {
   println!("Starting Server!");
@@ -30,6 +31,10 @@ fn main() -> Result<(), Box<dyn Error>> {
 
   let mut plugin = linker();
   plugin.as_mut().start();
+
+  //Global resources
+  //Global wire to all clients
+  //Wires to specific clients
 
   //(2) Connect to port
   let socket = TcpListener::bind("192.168.2.11:25565")?;

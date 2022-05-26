@@ -88,12 +88,13 @@ impl Client {
           }},
           Login => { match package.get_package_id() {
             0x00 => net::x00_login::Handler::handle_package(package, &mut stream),
+            usize::MAX => vec![Die], //client disconnected
             _ => vec![DoNothing]
           }},
-          Play => {
-            //Not implemented yet
-            vec![DoNothing]
-          }
+          Play => { match package.get_package_id() {
+            usize::MAX => vec![Die], //client disconnected
+            _ => vec![DoNothing]
+          }}
         };
         task_list.append(&mut client_tasks);
 
