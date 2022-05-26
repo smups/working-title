@@ -17,13 +17,31 @@
   along with srvr.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-//(A) Handshake procedure
-pub mod handshake;
-pub mod ping;
+use std::error::Error;
 
-//(B) Login
-pub mod login_start;
-pub mod encryption_response;
+use crate::{
+  packets::Packet,
+  raw_packet::{RawPacketReader, RawPacketWriter},
+  mc_dtypes::{MCDataType, MCVarInt}
+};
 
-//(C) Play
-pub mod teleport_confirm;
+#[derive(Debug, Clone)]
+pub struct TeleportConfirmPacket {
+  teleport_id: usize
+}
+
+impl Packet for TeleportConfirmPacket {
+  const PACKET_ID: usize = 0x00;
+
+  fn decode(buf: &mut RawPacketReader)
+    -> Result<TeleportConfirmPacket, Box<dyn Error>>
+  {
+    Ok(TeleportConfirmPacket{
+      teleport_id: i32::from(MCVarInt::decode(buf)?) as usize
+    })
+  }
+
+  fn encode(&self, buf: &mut RawPacketWriter) {
+    MCVarInt::from(self.teleport_id as i32).encode(buf);
+  }
+}

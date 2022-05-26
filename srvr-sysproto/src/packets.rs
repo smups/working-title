@@ -46,6 +46,9 @@ pub use server_bound::ping::PingPacket as SB_Ping;
 pub use server_bound::login_start::LoginStartPacket as SB_LoginStart;
 pub use server_bound::encryption_response::EncryptionResponsePacket as SB_EncryptionResponse;
 
+//(C) Play
+pub use server_bound::teleport_confirm::TeleportConfirmPacket as SB_TeleportConfirm;
+
 /*
   Re-export of all Possible client-bound (outgoing) packages
 */
