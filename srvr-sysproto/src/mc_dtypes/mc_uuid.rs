@@ -21,7 +21,7 @@ use byteorder::{BigEndian, ByteOrder};
 
 use super::*;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct MCUuid(u128);
 
 impl MCDataType for MCUuid {
@@ -41,4 +41,23 @@ impl From<u128> for MCUuid{
 
 impl From<MCUuid> for u128 {
   fn from(val: MCUuid) -> Self {val.0}
+}
+
+#[cfg(test)]
+mod mc_double_test {
+
+  use rand::{self, Rng};
+
+  use crate::correctness_test;
+
+  #[test]
+  fn correctness_test() {
+    let mut rng = rand::thread_rng();
+    //Try 100 random bytes
+    for _ in 0..100 {
+      let num: u128 = rng.gen();
+      correctness_test!(crate::mc_dtypes::MCUuid, num);
+    }
+  }
+
 }
