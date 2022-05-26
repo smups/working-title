@@ -21,7 +21,7 @@ use byteorder::{BigEndian, ByteOrder};
 
 use super::*;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct MCDouble(f64);
 
 impl MCDataType for MCDouble {
@@ -41,4 +41,25 @@ impl From<f64> for MCDouble{
 
 impl From<MCDouble> for f64 {
   fn from(val: MCDouble) -> Self {val.0}
+}
+
+#[cfg(test)]
+mod mc_double_test {
+
+  use rand::{self, Rng};
+
+  #[macro_use]
+  use crate::correctness_test;
+
+  #[test]
+  fn correctness_test() {
+    use crate::mc_dtypes::MCDouble;
+    let mut rng = rand::thread_rng();
+    //Try 100 random bytes
+    for _ in 0..100 {
+      let num: f64 = rng.gen();
+      correctness_test!(MCDouble, num);
+    }
+  }
+
 }
