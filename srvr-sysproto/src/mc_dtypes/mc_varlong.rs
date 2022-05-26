@@ -91,7 +91,10 @@ impl MCVarLong {
 #[cfg(test)]
 mod mc_varlong_test{
 
+  use rand::{self, Rng};
+
   use crate::{
+    correctness_test,
     mc_dtypes::{MCDataType, mc_varlong::MCVarLong},
     raw_packet::{RawPacketReader, RawPacketWriter}
   };
@@ -144,4 +147,15 @@ mod mc_varlong_test{
     write_test!(vec![0x80,0x80,0x80,0x80,0xf8,0xff,0xff,0xff,0xff,0x01], -2147483648);
     write_test!(vec![0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x01], -9223372036854775808);
   }
+
+  #[test]
+  fn correctness_test() {
+    let mut rng = rand::thread_rng();
+    //Try 100 random bytes
+    for _ in 0..100 {
+      let num: i64 = rng.gen();
+      correctness_test!(crate::mc_dtypes::MCVarLong, num);
+    }
+  }
+
 }
