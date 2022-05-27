@@ -48,7 +48,9 @@ impl Client {
     -> Self
   {
     println!("New client connected @{addr:?}");
+    //Setup connection to main thread
     let global_wire_connection = global_wire.connect();
+    let server_instruction_wire: Wire<Task> = Wire::new();
 
     thread::Builder::new().name(format!("TL_thread_@{addr:?}")).spawn(move || {
 
@@ -81,9 +83,8 @@ impl Client {
           }
         }
 
-        //(3) Get input from the remote client
+        //(3) Get input from the remote client (this blocks!!!)
         let mut package = RawPacketReader::read(&mut stream).unwrap();
-        println!("{package:?}");
 
         //(4) Find out what kind of packet we are dealing with
         let mut client_tasks = match state {
