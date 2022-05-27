@@ -17,25 +17,29 @@
   along with srvr.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+
 use std::net::TcpStream;
 
-use srvr_sysproto::raw_packet::RawPacketReader;
+use srvr_sysproto::{
+  packets::{Packet, CB_SpawnPosition},
+  raw_packet::RawPacketWriter
+};
 
-use crate::task::Task;
+use crate::task::{Task, SpawnLocCtx};
+use super::TaskHandler;
 
-pub trait PackageHandler {
-  fn handle_package(raw_pck: RawPacketReader, stream: &mut TcpStream) -> Vec<Task>;
+#[derive(Debug)]
+pub struct Handler;
+
+impl TaskHandler for Handler {
+  type Context = SpawnLocCtx;
+  fn handle_task(ctx: SpawnLocCtx, stream: &mut TcpStream, _: &mut Vec<Task>) {
+    //Send position
+    let mut writer = RawPacketWriter::new(CB_SpawnPosition::PACKET_ID);
+    CB_SpawnPosition {
+      location: ctx.location,
+      angle: ctx.angle
+    }.encode(&mut writer);
+    writer.write(stream).unwrap();
+  }
 }
-
-/*
-  List of package handlers
-*/
-//(A) handshake procedure
-pub mod x00_handshake;
-pub mod x01_pingpong;
-pub mod xfe_serverlist_ping;
-
-//(B) login procedure
-pub mod x00_login;
-
-//(C) Play

@@ -29,12 +29,13 @@ use srvr_sysproto::{
 
 use crate::{
   task::Task::{self, *},
-  client::net::PackageHandler,
+  client::{net::PackageHandler, task::TaskHandler},
   wire::Wire
 };
 
 //Module structure
 mod net;
+mod task;
 pub mod state;
 
 #[derive(Debug)]
@@ -74,14 +75,18 @@ impl Client {
         task_list.push(listen_global.poll().unwrap_or(DoNothing));
 
         //(2) Execute tasks from previous tick
+        let mut follow_up = Vec::new();
         for task in task_list.drain(..) {
           match task {
             DoNothing => {}, //do nothing lol
             Die => break 'tick_loop,
             SetServerState(new_state) => state = new_state,
-            SpawnPlayer{player_name: name, uuid: uuid} => {} //do nothing
+            SpawnPlayer(ctx) => task::spawn_player::Handler::handle_task(ctx, &mut stream, &mut follow_up),
+            SendSpawnLoc(ctx) => task::set_spawn_loc::Handler::handle_task(ctx, &mut stream, &mut follow_up),
+            _ => {} //do nothing
           }
         }
+        follow_up.drain(..).for_each(|task| task_list.push(task));
 
         //(3) Get input from the remote client (this blocks!!!)
         let mut package = RawPacketReader::read(&mut stream).unwrap();

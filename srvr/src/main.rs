@@ -40,10 +40,10 @@ fn main() -> Result<(), Box<dyn Error>> {
   let mut global_wire: Wire<Task> = Wire::new();
 
   //(2) Connect to port
-  let socket = TcpListener::bind("192.168.2.11:25565")?;
+  let socket = TcpListener::bind("127.0.0.1:25565")?;
   loop {
     // (1) Open connection
-    let (mut stream, addr) = socket.accept()?;
+    let (stream, addr) = socket.accept()?;
     let client = Client::new(stream, addr, &mut global_wire);
   }
 

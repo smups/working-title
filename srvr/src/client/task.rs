@@ -19,23 +19,16 @@
 
 use std::net::TcpStream;
 
-use srvr_sysproto::raw_packet::RawPacketReader;
+use crate::task::{Task, TaskContext};
 
-use crate::task::Task;
-
-pub trait PackageHandler {
-  fn handle_package(raw_pck: RawPacketReader, stream: &mut TcpStream) -> Vec<Task>;
+pub trait TaskHandler {
+  type Context: TaskContext;
+  fn handle_task(context: Self::Context, stream: &mut TcpStream, task_list: &mut Vec<Task>);
 }
 
 /*
-  List of package handlers
+  List of task handlers
 */
-//(A) handshake procedure
-pub mod x00_handshake;
-pub mod x01_pingpong;
-pub mod xfe_serverlist_ping;
-
-//(B) login procedure
-pub mod x00_login;
-
-//(C) Play
+//(C.1) Spawning a player
+pub mod spawn_player;
+pub mod set_spawn_loc;

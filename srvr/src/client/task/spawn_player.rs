@@ -17,25 +17,25 @@
   along with srvr.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+
 use std::net::TcpStream;
 
-use srvr_sysproto::raw_packet::RawPacketReader;
+use crate::task::{Task, SpawnPlayerCtx, SpawnLocCtx};
+use super::TaskHandler;
 
-use crate::task::Task;
+#[derive(Debug)]
+pub struct Handler;
 
-pub trait PackageHandler {
-  fn handle_package(raw_pck: RawPacketReader, stream: &mut TcpStream) -> Vec<Task>;
+const SPAWN_LOC: (i32, i32, i16) = (0,0,100);
+const SPAWN_ANG: f32 = 120.;
+
+impl TaskHandler for Handler {
+  type Context = SpawnPlayerCtx;
+  fn handle_task(task: SpawnPlayerCtx, stream: &mut TcpStream, task_list: &mut Vec<Task>) {
+    use Task::*;
+
+    //(1) Send spawn position
+    let pos_ctx = SpawnLocCtx{location: SPAWN_LOC, angle: SPAWN_ANG};
+    task_list.push(SendSpawnLoc(pos_ctx));
+  }
 }
-
-/*
-  List of package handlers
-*/
-//(A) handshake procedure
-pub mod x00_handshake;
-pub mod x01_pingpong;
-pub mod xfe_serverlist_ping;
-
-//(B) login procedure
-pub mod x00_login;
-
-//(C) Play

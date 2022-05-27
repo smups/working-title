@@ -25,7 +25,7 @@ use super::PackageHandler;
 
 use crate::{
   client::state::PlayState::*,
-  task::Task,
+  task::{Task, SpawnPlayerCtx},
 };
 
 use srvr_sysproto::{
@@ -58,7 +58,7 @@ impl PackageHandler for Handler {
     //(3) Give command to change server state to play
     vec![
       Task::SetServerState(Play),
-      Task::SpawnPlayer{player_name: username, uuid: uuid}
+      Task::SpawnPlayer(SpawnPlayerCtx{player_name: username, uuid: uuid})
     ]
   }
 }

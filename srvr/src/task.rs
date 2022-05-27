@@ -17,15 +17,42 @@
   along with srvr.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+use srvr_sysproto::mc_dtypes::MCPosition;
+
 use crate::client::state::PlayState;
-
-//Modules declared below are task-handlers for more complicated tasks
-
 
 #[derive(Debug, Clone)]
 pub enum Task {
+  /*
+    Tasks are used to communicate both within a thread (to relay data or
+    instructions to the next tick loop) or between threads (to relay
+    instructions and basic data).
+
+    Tasks may contain a small data payload (context), which is heap-allocated
+    and passed via a box.
+    Task context types implement the TaskContext trait.
+  */
   DoNothing,
   Die,
   SetServerState(PlayState),
-  SpawnPlayer{player_name: String, uuid: u128}
+  //Player spawn process
+  SpawnPlayer(SpawnPlayerCtx),
+  SendSpawnLoc(SpawnLocCtx)
 }
+
+//See documentation above
+pub trait TaskContext {}
+
+#[derive(Debug, Clone)]
+pub struct SpawnPlayerCtx {
+  pub player_name: String,
+  pub uuid: u128
+}
+impl TaskContext for SpawnPlayerCtx {}
+
+#[derive(Debug, Clone)]
+pub struct SpawnLocCtx {
+  pub location: (i32, i32, i16),
+  pub angle: f32
+}
+impl TaskContext for SpawnLocCtx {}
