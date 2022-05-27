@@ -29,3 +29,4 @@ pub mod set_compression;
 
 //(C) Play
 pub mod join_game;
+pub mod spawn_position;

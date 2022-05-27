@@ -64,3 +64,4 @@ pub use client_bound::set_compression::SetCompressionPacket as CB_SetCompression
 
 //(C) Play
 pub use client_bound::join_game::JoinGamePacket as CB_JoinGame;
+pub use client_bound::spawn_position::SpawnPositionPacket as CB_SpawnPosition;

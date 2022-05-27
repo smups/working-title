@@ -22,28 +22,32 @@ use std::error::Error;
 use crate::{
   packets::Packet,
   raw_packet::{RawPacketReader, RawPacketWriter},
-  mc_dtypes::{MCDataType, MCVarInt}
+  mc_dtypes::{MCDataType, MCPosition, MCFloat}
 };
 
 #[derive(Debug,Clone)]
-pub struct SetCompressionPacket {
-  pub threshold_len: usize
+pub struct SpawnPositionPacket {
+  pub location: (i32, i32, i16),
+  pub angle: f32
 }
 
-impl Packet for SetCompressionPacket {
-
-  const PACKET_ID: usize = 0x03;
+impl Packet for SpawnPositionPacket {
+  const PACKET_ID: usize = 0x4b;
 
   fn decode(buf: &mut RawPacketReader)
-    -> Result<SetCompressionPacket, Box<dyn Error>>
+    -> Result<SpawnPositionPacket, Box<dyn Error>>
   {
-    Ok(SetCompressionPacket{
-      threshold_len: i32::from(MCVarInt::decode(buf)?) as usize
+    let position = MCPosition::decode(buf)?;
+    let angle = MCFloat::decode(buf)?;
+    Ok(SpawnPositionPacket{
+      location: position.into(),
+      angle: angle.into()
     })
   }
 
   fn encode(&self, buf: &mut RawPacketWriter) {
-    MCVarInt::from(self.threshold_len as i32).encode(buf);
+    MCPosition::from(self.location).encode(buf);
+    MCFloat::from(self.angle).encode(buf);
   }
 
 }
