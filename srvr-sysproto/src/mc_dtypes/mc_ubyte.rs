@@ -9,7 +9,7 @@
   as specified by the EUPL v1.2 or higher.
 
   As the copyright holder is a citizen of the Kingdom of the Netherlands, this
-  license agreement shall be governed by dutch law, as specified in clause 17
+  license agreement shall be governed by dutch law, as specified in clause 15
   of the EUPL v1.2.
 
   srvr is distributed in the hope that it will be useful, but WITHOUT ANY
@@ -21,6 +21,7 @@
   <https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12> for the full
   text of the license in any official language of the European Union.
 */
+
 use super::*;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
