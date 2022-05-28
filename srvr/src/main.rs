@@ -70,7 +70,7 @@ fn main() -> Result<(), Box<dyn Error>> {
   let mut client_wires: Vec<Client> = Vec::new();
 
   //(2) Connect to port
-  let socket = TcpListener::bind("127.0.0.1:25565")?;
+  let socket = TcpListener::bind("192.168.68.125:25565")?;
 
   loop {
     // (1) Open connection
