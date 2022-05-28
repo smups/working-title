@@ -22,24 +22,16 @@
   text of the license in any official language of the European Union.
 */
 
-use std::net::TcpStream;
+/*
+  List of task handlers
+*/
+//(C.1) Spawning a player
+mod set_spawn_loc;
+mod spawn_player;
 
-use crate::task::{Task, SpawnPlayerCtx, SpawnLocCtx};
-use super::TaskHandler;
-
-#[derive(Debug)]
-pub struct Handler;
-
-const SPAWN_LOC: (i32, i32, i16) = (0,0,100);
-const SPAWN_ANG: f32 = 120.;
-
-impl TaskHandler for Handler {
-  type Context = SpawnPlayerCtx;
-  fn handle_task(task: SpawnPlayerCtx, stream: &mut TcpStream, task_list: &mut Vec<Task>) {
-    use Task::*;
-
-    //(1) Send spawn position
-    let pos_ctx = SpawnLocCtx{location: SPAWN_LOC, angle: SPAWN_ANG};
-    task_list.push(SendSpawnLoc(pos_ctx));
-  }
-}
+/*
+  Exports of task handlers
+*/
+//(C.1) Spawning a player
+pub use spawn_player::spawn_player as spawn_player;
+pub use set_spawn_loc::set_spawn_loc as set_spawn_loc;

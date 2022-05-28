@@ -29,8 +29,8 @@ use rand::Rng;
 use super::PackageHandler;
 
 use crate::{
-  client::state::PlayState::*,
-  task::{Task, SpawnPlayerCtx},
+  client::{state::PlayState::*, task_executors},
+  task::{Task, TaskContext::*}
 };
 
 use srvr_sysproto::{
@@ -60,10 +60,14 @@ impl PackageHandler for Handler {
     rsp.encode(&mut writer);
     writer.write(stream).unwrap();
 
-    //(3) Give command to change server state to play
+    //(3) Prepare context for spawn player command
+    let ctx = SpawnPlayerCtx{ player_name: username, uuid: uuid };
+    let executor = task_executors::spawn_player;
+
+    //(4) Send commands
     vec![
       Task::SetServerState(Play),
-      Task::SpawnPlayer(SpawnPlayerCtx{player_name: username, uuid: uuid})
+      Task::Do(executor, ctx)
     ]
   }
 }

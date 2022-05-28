@@ -59,17 +59,27 @@ fn main() -> Result<(), Box<dyn Error>> {
   let mut plugin = linker();
   plugin.as_mut().start();
 
-  //Global resources
+  /*
+    Global resources
+  */
   //Global wire to all clients
   let mut global_wire: Wire<Task> = Wire::new();
 
+  //Wires to all clients
+  let mut client_wires: Vec<Client> = Vec::new();
+
   //(2) Connect to port
   let socket = TcpListener::bind("127.0.0.1:25565")?;
+
   loop {
     // (1) Open connection
     let (stream, addr) = socket.accept()?;
     let client = Client::new(stream, addr, &mut global_wire);
+    client_wires.push(client);
   }
+
+  //Drop clients before we exit
+  drop(client_wires);
 
   plugin.as_mut().stop();
 }

@@ -22,42 +22,43 @@
   text of the license in any official language of the European Union.
 */
 
-use srvr_sysproto::mc_dtypes::MCPosition;
+use std::net::TcpStream;
 
 use crate::client::state::PlayState;
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub enum Task {
   /*
     Tasks are used to communicate both within a thread (to relay data or
     instructions to the next tick loop) or between threads (to relay
     instructions and basic data).
 
-    Tasks may contain a small data payload (context), which is heap-allocated
-    and passed via a box.
-    Task context types implement the TaskContext trait.
+    The generic task Do(function_ptr) executes the function the function pointer
+    is pointing to, provided the context (enum). Generic tasks can only directly
+    modify two aspects of the tick loop:
+      (1) Add follow-up tasks (this is done via the follow_up borrow)
+      (2) Send client-bound packages (done via the stream borrow)
+    If more control over the tick-loop is required, a task gets a separate enum
+    variant. This amount should be kept to a minimum to prevent unnecessary
+    branching.
   */
   DoNothing,
   Die,
-  SetServerState(PlayState),
-  //Player spawn process
-  SpawnPlayer(SpawnPlayerCtx),
-  SendSpawnLoc(SpawnLocCtx)
+  Do(
+    fn(ctx: TaskContext, stream: &mut TcpStream, follow_up: &mut Vec<Task>)
+      -> Result<(), Box<dyn std::error::Error>>,
+    TaskContext//<'a> //The context is packaged together with the function pointer
+  ),
+  SetServerState(PlayState)
 }
-
-//See documentation above
-pub trait TaskContext {}
 
 #[derive(Debug, Clone)]
-pub struct SpawnPlayerCtx {
-  pub player_name: String,
-  pub uuid: u128
+pub enum TaskContext {//<'a> {
+  /*
+    This enum contains data (context) that is required to perform a certain
+    task. If a large amount of data is required to perform the task, a reference
+    or smart pointer should be used.
+  */
+  SpawnPlayerCtx{player_name: String, uuid: u128},
+  SpawnLocCtx{location: (i32, i32, i16), angle: f32}
 }
-impl TaskContext for SpawnPlayerCtx {}
-
-#[derive(Debug, Clone)]
-pub struct SpawnLocCtx {
-  pub location: (i32, i32, i16),
-  pub angle: f32
-}
-impl TaskContext for SpawnLocCtx {}

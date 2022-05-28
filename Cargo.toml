@@ -21,6 +21,7 @@
 #  text of the license in any official language of the European Union.
 
 [workspace]
+resolver = "2"
 members = [
     "srvr",
     "srvr-sysplugin",

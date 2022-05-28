@@ -22,30 +22,36 @@
   text of the license in any official language of the European Union.
 */
 
-use std::net::TcpStream;
-
-use srvr_sysproto::{
-  packets::{Packet, CB_SpawnPosition},
-  raw_packet::RawPacketWriter
+use std::{
+  net::TcpStream,
+  error::Error
 };
 
-use crate::task::{Task, SpawnLocCtx};
-use super::TaskHandler;
+use srvr_sysproto::{
+  raw_packet::RawPacketWriter,
+  packets::{Packet, CB_SpawnPosition}
+};
 
-#[derive(Debug)]
-pub struct Handler;
+use crate::task::{TaskContext, Task};
 
-impl TaskHandler for Handler {
-  type Context = SpawnLocCtx;
-  fn handle_task(ctx: SpawnLocCtx, stream: &mut TcpStream, _: &mut Vec<Task>) {
-    //Send position
-    let mut writer = RawPacketWriter::new(CB_SpawnPosition::PACKET_ID);
-    let packet = CB_SpawnPosition {
-      location: ctx.location,
-      angle: ctx.angle
-    };
-    println!("{packet:?}");
-    packet.encode(&mut writer);
-    writer.write(stream).unwrap();
-  }
+pub fn set_spawn_loc(
+  ctx: TaskContext,
+  stream: &mut TcpStream,
+  _: &mut Vec<Task> //No follow-up for this packet
+)
+  -> Result<(), Box<dyn Error>>
+{
+  //(0) Unwrap the context
+  let (location, angle) = match ctx {
+    TaskContext::SpawnLocCtx{ location, angle } => (location, angle),
+    _ => panic!() //invalid context
+  };
+
+  //(1) We have to send the spawn location of the player
+  let pckt = CB_SpawnPosition{location: location, angle: angle};
+  let mut writer = RawPacketWriter::new(pckt.packet_id());
+  pckt.encode(&mut writer);
+  writer.write(stream)?;
+
+  Ok(())
 }

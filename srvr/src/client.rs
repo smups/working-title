@@ -34,13 +34,13 @@ use srvr_sysproto::{
 
 use crate::{
   task::Task::{self, *},
-  client::{net::PackageHandler, task::TaskHandler},
+  client::{net::PackageHandler, task_executors::*},
   wire::Wire
 };
 
 //Module structure
 mod net;
-mod task;
+mod task_executors;
 pub mod state;
 
 #[derive(Debug)]
@@ -50,8 +50,12 @@ pub struct Client {
 
 impl Client {
 
-  pub fn new(mut stream: TcpStream, addr: SocketAddr, global_wire: &mut Wire<Task>)
-    -> Self
+  pub fn new<'a>(
+    stream: TcpStream,
+    addr: SocketAddr,
+    global_wire: &mut Wire<Task>
+  )
+    -> Client
   {
     println!("New client connected @{addr:?}");
     //Setup connection to main thread
@@ -59,6 +63,9 @@ impl Client {
     let server_instruction_wire: Wire<Task> = Wire::new();
 
     thread::Builder::new().name(format!("TL_thread_@{addr:?}")).spawn(move || {
+
+      //Thread-local connection to stream
+      let mut stream = stream;
 
       //Task list - is emptied each tick loop
       let mut task_list: Vec<Task> = Vec::new();
@@ -84,11 +91,9 @@ impl Client {
         for task in task_list.drain(..) {
           match task {
             DoNothing => {}, //do nothing lol
+            Do(executor, ctx) => executor(ctx, &mut stream, &mut follow_up).unwrap(),
             Die => break 'tick_loop,
-            SetServerState(new_state) => state = new_state,
-            SpawnPlayer(ctx) => task::spawn_player::Handler::handle_task(ctx, &mut stream, &mut follow_up),
-            SendSpawnLoc(ctx) => task::set_spawn_loc::Handler::handle_task(ctx, &mut stream, &mut follow_up),
-            _ => {} //do nothing
+            SetServerState(new_state) => state = new_state
           }
         }
         follow_up.drain(..).for_each(|task| task_list.push(task));

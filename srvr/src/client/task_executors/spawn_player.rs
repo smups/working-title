@@ -22,18 +22,30 @@
   text of the license in any official language of the European Union.
 */
 
-use std::net::TcpStream;
+use std::{
+  error::Error,
+  net::TcpStream
+};
 
 use crate::task::{Task, TaskContext};
 
-pub trait TaskHandler {
-  type Context: TaskContext;
-  fn handle_task(context: Self::Context, stream: &mut TcpStream, task_list: &mut Vec<Task>);
-}
+pub fn spawn_player(
+  ctx: TaskContext,
+  stream: &mut TcpStream,
+  follow_up: &mut Vec<Task>
+)
+  -> Result<(), Box<dyn Error>>
+{
+  println!("Spawning player {ctx:?}");
+  //(0) Unwrap the context
+  let (player_name, uuid) = match ctx {
+    TaskContext::SpawnPlayerCtx{ player_name, uuid } => (player_name, uuid),
+    _ => panic!() //invalid context
+  };
 
-/*
-  List of task handlers
-*/
-//(C.1) Spawning a player
-pub mod spawn_player;
-pub mod set_spawn_loc;
+  //(1) We have to send the spawn location of the player -> prepare a task
+  let ctx = TaskContext::SpawnLocCtx{ location: (0, 0, 100), angle: 120.0 };
+  follow_up.push(Task::Do(super::set_spawn_loc, ctx));
+
+  Ok(())
+}
