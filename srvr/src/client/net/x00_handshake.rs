@@ -45,7 +45,6 @@ impl PackageHandler for Handler {
   {
     //(1) Decode handshake
     let handshake = SB_Handshake::decode(&mut raw_pck).unwrap();
-    println!("{handshake:?}");
 
     //(2) Decide where we go next
     let next_step = match handshake.next_state_code() {

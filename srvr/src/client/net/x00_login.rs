@@ -47,7 +47,6 @@ impl PackageHandler for Handler {
   {
     //(1) Decode the package
     let login_req = SB_LoginStart::decode(&mut raw_pck).unwrap();
-    println!("{login_req:?}");
 
     //For now, we'll forgo encryption. Just get the username and think of an UUID
     let username = login_req.player_name;
@@ -55,7 +54,6 @@ impl PackageHandler for Handler {
 
     //(2) Reply with a Login Success packet
     let rsp = CB_LoginSuccess{uuid: uuid.clone(), player_name: username.clone()};
-    println!("{rsp:?}");
     let mut writer = RawPacketWriter::new(rsp.packet_id());
     rsp.encode(&mut writer);
     writer.write(stream).unwrap();

@@ -34,7 +34,7 @@ use srvr_sysproto::{
 
 use crate::{
   task::Task::{self, *},
-  client::{net::PackageHandler, task_executors::*},
+  client::net::PackageHandler,
   wire::Wire
 };
 
@@ -99,7 +99,13 @@ impl Client {
         follow_up.drain(..).for_each(|task| task_list.push(task));
 
         //(3) Get input from the remote client (this blocks!!!)
-        let mut package = RawPacketReader::read(&mut stream).unwrap();
+        let package = match RawPacketReader::read(&mut stream) {
+          Ok(package) => package,
+          Err(_) => {
+            //We timed-out! That's ok though, we'll connect again next tick
+            continue;
+          }
+        };
 
         //(4) Find out what kind of packet we are dealing with
         let mut client_tasks = match state {

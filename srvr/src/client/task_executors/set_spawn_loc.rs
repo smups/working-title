@@ -41,6 +41,7 @@ pub fn set_spawn_loc(
 )
   -> Result<(), Box<dyn Error>>
 {
+  println!("Setting player loc {ctx:?}");
   //(0) Unwrap the context
   let (location, angle) = match ctx {
     TaskContext::SpawnLocCtx{ location, angle } => (location, angle),

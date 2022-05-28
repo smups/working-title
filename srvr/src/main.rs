@@ -43,6 +43,7 @@ use crate::{
 
 //Tick duration
 pub const TICK_DURATION: Duration = Duration::from_millis(50);
+const READ_TIMEOUT: Duration = Duration::from_millis(5);
 
 fn main() -> Result<(), Box<dyn Error>> {
   println!("Starting Server!");
@@ -74,6 +75,7 @@ fn main() -> Result<(), Box<dyn Error>> {
   loop {
     // (1) Open connection
     let (stream, addr) = socket.accept()?;
+    stream.set_read_timeout(Some(READ_TIMEOUT)).unwrap();
     let client = Client::new(stream, addr, &mut global_wire);
     client_wires.push(client);
   }

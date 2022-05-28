@@ -42,11 +42,9 @@ impl PackageHandler for Handler {
   {
     //(1) Decode ping packet
     let ping = SB_Ping::decode(&mut raw_pck).unwrap();
-    println!("{ping:?}");
 
     //(2) Return pong packet
     let pong = CB_Pong{payload: ping.payload};
-    println!("{pong:?}");
     let mut writer = RawPacketWriter::new(pong.packet_id());
     pong.encode(&mut writer);
     writer.write(stream).unwrap();
