@@ -23,22 +23,76 @@
 */
 
 //External deps
-pub use tokio::*;
+use tokio::runtime::Builder;
 pub use log::*;
 pub use semver::Version;
 
 //Module structure
-mod client;
 mod logger;
+mod config;
+mod client;
 mod srvr_manager;
+
+//Internal deps
+use config::Config;
 
 //Version
 pub const VERSION: Version = Version::new(0,0,1);
 
-//Folders
+//Folders and files
 pub const LOG_FOLDER: &'static str = "./logs";
+pub const ASSET_FOLDER: &'static str = "./assets";
+pub const PLUGIN_FOLDER: &'static str = "./plugins";
+pub const CONFIG_FILE: &'static str = "./config.toml";
+
+//Public configuration file
+pub static mut CONFIG: Option<Config> = None;
 
 fn main() {
   //(1) Very first task is to set-up the logging system
   logger::start_logger();
+
+  //(2) Load the configuration and store it into the global static var
+  match config::load_config() {
+    Ok(config) => {
+      info!("Finished loading config file");
+      unsafe { CONFIG = Some(config) }
+    } Err(err) => {
+      error!("Could not parse config file (reason: \"{}\"). Shutting down...", err);
+      return;
+    }
+  };
+  let config = config::copy_config();
+
+  //(3) Set-up the async threadpool
+  let runtime = match Builder::new_multi_thread()
+    .worker_threads(config.general_settings.async_workers)
+    .max_blocking_threads(config.general_settings.blocking_workers)
+    .thread_stack_size(config.general_settings.stack_size)
+    .enable_all()
+    .thread_name("srvr-worker")
+    .build()
+  {
+    Ok(runtime) => {
+      info!("Finished setting up runtime");
+      runtime
+    } Err(err) => {
+      error!("Could not set-up runtime (reason: \"{}\"). Shutting down...", err);
+      return;
+    }
+  };
+
+  //(4) Load plugins (oof!)
+
+  //(5) Start server!
+  runtime.block_on(async {
+    match srvr_manager::Main::init().await {
+      Ok(mut srvr) => {
+        info!("Startup complete!");
+        srvr.listen().await;
+      } Err(err) => {
+        error!("Could not bind to server socket (reason: \"{}\"). Shutting down...", err);
+      }
+    }
+  });
 }

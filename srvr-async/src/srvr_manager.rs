@@ -21,3 +21,47 @@
   <https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12> for the full
   text of the license in any official language of the European Union.
 */
+
+use std::{
+  error::Error,
+  net::{SocketAddr, Ipv4Addr, IpAddr}
+};
+
+use log::info;
+use tokio::net::TcpListener;
+
+use crate::config::Config;
+
+#[derive(Debug)]
+pub struct Main {
+  config: Config,
+  socket: TcpListener
+}
+
+impl Main {
+
+  pub async fn init() -> Result<Self, Box<dyn Error>> {
+    //(1) Get global config
+    let config = crate::config::copy_config();
+
+    //(2) Try to listen on the port
+    let ip: IpAddr = Ipv4Addr::from(config.network_settings.ip).into();
+    let socket_addr = SocketAddr::new(ip, config.network_settings.port);
+    let socket = TcpListener::bind(socket_addr.clone()).await?;
+  
+    //(R) before we return, say hi to the console
+    info!("Server listening @{}", socket_addr);
+    Ok(Main {
+      config: config,
+      socket: socket
+    })
+  }
+
+  pub async fn listen(&mut self) {
+    loop {
+      let (connection, addr) = self.socket.accept().await.unwrap();
+      info!("Client connected @{}", addr);
+    }
+  }
+
+}
