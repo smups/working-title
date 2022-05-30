@@ -35,7 +35,7 @@ use srvr_sysproto::{
 use crate::{
   task::Task::{self, *},
   client::net::PackageHandler,
-  wire::Wire
+  wire::{Wire, WireListener}
 };
 
 //Module structure
@@ -45,7 +45,9 @@ pub mod state;
 
 #[derive(Debug)]
 pub struct Client {
-  addr: SocketAddr
+  addr: SocketAddr,
+  tx: Wire<Task>,
+  rx: WireListener<Task>
 }
 
 impl Client {
@@ -60,7 +62,12 @@ impl Client {
     println!("New client connected @{addr:?}");
     //Setup connection to main thread
     let global_wire_connection = global_wire.connect();
-    let server_instruction_wire: Wire<Task> = Wire::new();
+
+    let mut server_instruction_wire: Wire<Task> = Wire::new();
+    let rx = server_instruction_wire.connect();
+
+    let mut tx: Wire<Task> = Wire::new();
+    let local_wire_connection = tx.connect();
 
     thread::Builder::new().name(format!("TL_thread_@{addr:?}")).spawn(move || {
 
@@ -72,6 +79,8 @@ impl Client {
 
       //Connections to the main server thread
       let mut listen_global = global_wire_connection;
+      let mut listen_local = local_wire_connection;
+      let mut send_server = server_instruction_wire;
 
       //Thread-local data
 
@@ -144,7 +153,7 @@ impl Client {
       println!("Client disconnected, ending tickoop {}",thread::current().name().unwrap());
     }).unwrap();
 
-    Client { addr: addr }
+    Client { addr: addr, rx: rx, tx: tx}
   }
 
 }

@@ -24,7 +24,9 @@
 resolver = "2"
 members = [
     "srvr",
+    "srvr-async",
     "srvr-sysplugin",
     "srvr-sysproto",
+    "srvr-sysnbt",
     "sample-plugin",
 ]

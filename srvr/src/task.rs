@@ -52,6 +52,17 @@ pub enum Task {
   SetServerState(PlayState)
 }
 
+impl std::fmt::Debug for Task {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    match self {
+      Self::DoNothing => write!(f, "DoNothing"),
+      Self::Die => write!(f, "Die"),
+      Self::Do(_exe, ctx) => write!(f, "Do({ctx:?})"),
+      Self::SetServerState(arg0) => f.debug_tuple("SetServerState").field(arg0).finish(),
+    }
+  }
+}
+
 #[derive(Debug, Clone)]
 pub enum TaskContext {//<'a> {
   /*

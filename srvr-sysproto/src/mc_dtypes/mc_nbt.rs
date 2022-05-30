@@ -22,9 +22,24 @@
   text of the license in any official language of the European Union.
 */
 
+use serde::{Serialize, Deserialize};
+use simple_error::{SimpleResult, SimpleError};
+
 use super::*;
 
-#[derive(Debug, Clone)]
+
+pub enum BinaryTag {
+  End,
+  Byte(i8),
+  Short(i16),
+  Int(i32),
+  Long(i64),
+  Float(f32),
+  Double(f64),
+  
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum NbtTag {
   End,
   Byte(Option<String>, i8),
@@ -270,6 +285,7 @@ impl MCDataType for NbtTag {
 }
 
 impl NbtTag {
+
   const fn type_code(&self) -> u8 {
     use NbtTag::*;
     match self {
@@ -288,4 +304,66 @@ impl NbtTag {
       LongArray(_,_)  => 12
     }
   }
+
+  pub fn is_nameless(&self) -> bool {
+    use NbtTag::*;
+    match self {
+      Short(name, _) if name.is_some()  => true,
+      Int(name, _) if name.is_some()  => true,
+      Long(name, _) if name.is_some()  => true,
+      Float(name, _) if name.is_some()  => true,
+      Double(name, _) if name.is_some()  => true,
+      ByteArray(name, _) if name.is_some()  => true,
+      String(name, _) if name.is_some()  => true,
+      List(name, _) if name.is_some()  => true,
+      Compound(name, _) if name.is_some()  => true,
+      IntArray(name, _) if name.is_some()  => true,
+      LongArray(name, _) if name.is_some()  => true,
+      _ => false
+    }
+  }
+
+  pub fn insert(&mut self, val: NbtTag) -> SimpleResult<()> {
+    let nameless = self.is_nameless();
+    match self {
+      Self::Compound(_,vec) => vec.push(val),
+      Self::List(_,vec) if nameless => vec.push(val),
+      Self::List(_,_) => return Err(SimpleError::new("Cannot append named value to nbt list tag")),
+      _ => return Err(SimpleError::new("Can only insert values into nbt compounds or lists"))
+    }
+    Ok(())
+  }
+
+}
+
+impl std::ops::Index<&str> for NbtTag {
+  type Output = NbtTag;
+
+  fn index(&self, index: &str) -> &NbtTag {
+    use NbtTag::*;
+    match self {
+      Short(name, _) if name == &Some(index.to_owned()) => &self,
+      Int(name, _) if name == &Some(index.to_owned()) => &self,
+      Long(name, _) if name == &Some(index.to_owned()) => &self,
+      Float(name, _) if name == &Some(index.to_owned()) => &self,
+      Double(name, _) if name == &Some(index.to_owned()) => &self,
+      ByteArray(name, _) if name == &Some(index.to_owned()) => &self,
+      String(name, _) if name == &Some(index.to_owned()) => &self,
+      List(name, _) if name == &Some(index.to_owned()) => &self,
+      Compound(name, _) if name == &Some(index.to_owned()) => &self,
+      IntArray(name, _) if name == &Some(index.to_owned()) => &self,
+      LongArray(name, _) if name == &Some(index.to_owned()) => &self,
+      _ => &End
+    }
+  }
+}
+
+#[cfg(test)]
+mod nbt_test {
+
+  #[test]
+  fn read_test() {
+
+  }
+
 }

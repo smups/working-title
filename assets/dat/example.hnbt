@@ -1,0 +1,22 @@
+Compound("example"): {
+  Compound("Person 1"): {
+    Byte("age"): 8,
+    IntArray("my favourite numbers"): [
+      0, 1, 2, 3, -1, -4, -9, 120
+    ],
+    String("name"): "hendrik",
+    List("favourite_colors", String): [
+      "red", "blue", "yellow"
+    ]
+  },
+  Compound("Person 2"): {
+    Byte("age"): 8,
+    ByteArray("my favourite numbers"): [
+      0, 1, 2, 3, -1, -4, -9, 120
+    ],
+    String("name"): "Lisa",
+    List("favourite_colors", String): [
+      "red", "blue", "yellow"
+    ]
+  }
+}
