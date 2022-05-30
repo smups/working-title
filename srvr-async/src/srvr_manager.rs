@@ -21,24 +21,3 @@
   <https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12> for the full
   text of the license in any official language of the European Union.
 */
-
-//External deps
-pub use tokio::*;
-pub use log::*;
-pub use semver::Version;
-
-//Module structure
-mod client;
-mod logger;
-mod srvr_manager;
-
-//Version
-pub const VERSION: Version = Version::new(0,0,1);
-
-//Folders
-pub const LOG_FOLDER: &'static str = "./logs";
-
-fn main() {
-  //(1) Very first task is to set-up the logging system
-  logger::start_logger();
-}
