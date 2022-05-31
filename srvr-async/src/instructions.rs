@@ -22,6 +22,8 @@
   text of the license in any official language of the European Union.
 */
 
+use std::future::Future;
+
 #[derive(Debug, Clone)]
 pub enum ServerInstruction {
   Die

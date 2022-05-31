@@ -123,16 +123,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "349d5a591cd28b49e1d1037471617a32ddcda5731b99419008085f72d5a53836"
 
 [[package]]
-name = "libloading"
-version = "0.7.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "efbc0f03f9a775e9f6aed295c6a1ba2253c5757a9e03d55c6caa46a681abcddd"
-dependencies = [
- "cfg-if",
- "winapi",
-]
-
-[[package]]
 name = "linked-hash-map"
 version = "0.5.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -448,18 +438,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "srvr"
-version = "0.1.0"
-dependencies = [
- "libloading",
- "parking_lot",
- "rand",
- "serde",
- "srvr-sysplugin",
- "srvr-sysproto",
-]
-
-[[package]]
 name = "srvr-async"
 version = "0.1.0"
 dependencies = [
@@ -486,6 +464,7 @@ dependencies = [
  "serde",
  "serde_json",
  "simple-error",
+ "tokio",
 ]
 
 [[package]]

@@ -22,7 +22,11 @@
   text of the license in any official language of the European Union.
 */
 
-use std::{net::TcpStream, io::{Read, Write}, error::Error};
+use std::{
+  error::Error}
+;
+
+use tokio::net::TcpStream;
 
 use crate::mc_dtypes::{MCVarInt, MCDataType};
 
@@ -42,14 +46,15 @@ pub struct RawPacketReader {
 
 impl RawPacketReader {
 
-  pub fn read(stream: &mut TcpStream) -> Result<Self, Box<dyn Error>> {
+  pub async fn read(stream: &mut TcpStream) -> Result<Self, Box<dyn Error>> {
     /*(1)
       We first have to find the length of the package. This is encoded in an
       up-to 3-byte varint. If we read too many bytes, we'll have to account for
       that.
     */
     let mut tmp_buf = vec![0u8;3];
-    stream.read(&mut tmp_buf)?;
+    stream.readable().await?;
+    stream.try_read(&mut tmp_buf)?;
     let mut tmp_reader= RawPacketReader::from_raw(tmp_buf);
 
     let package_len: i32 = MCVarInt::decode(&mut tmp_reader)?.into();
@@ -64,7 +69,8 @@ impl RawPacketReader {
 
     //(2) Read the remaining contents
     let mut big_buf = vec![0u8;bytes_to_read];
-    stream.read(&mut big_buf)?;
+    stream.readable().await?;
+    stream.try_read(&mut big_buf)?;
     let mut reader = match excess {
       0 => RawPacketReader::from_raw(big_buf),
       1 | 2 => {
@@ -72,7 +78,7 @@ impl RawPacketReader {
         complete_buf.append(&mut big_buf);
         RawPacketReader::from_raw(complete_buf)
       } other => {
-        todo!();
+        todo!(); //should error the fuck out
       }
     };
 
@@ -134,7 +140,7 @@ pub struct RawPacketWriter {
 
 impl RawPacketWriter {
 
-  pub fn write(mut self, stream: &mut TcpStream) -> Result<(), Box<dyn Error>> {
+  pub async fn write(mut self, stream: &mut TcpStream) -> Result<(), Box<dyn Error>> {
     //(1) First we should encode the package ID, since its length is included
     //in the package length
     let mut tmp_writer = RawPacketWriter::empty(0);
@@ -152,7 +158,8 @@ impl RawPacketWriter {
     full_buf.append(&mut self.bytes);
 
     //(4) Now we write the bytes to the stream
-    stream.write(&full_buf)?;
+    stream.writable().await?;
+    stream.try_write(&full_buf)?;
     Ok(())
   }
 
@@ -165,7 +172,6 @@ impl RawPacketWriter {
   }
 
   pub fn from_raw(raw: Vec<u8>) -> RawPacketWriter {
-    let ptr_start = raw.len();
     RawPacketWriter { bytes: raw, id: 0 }
   }
 

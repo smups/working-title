@@ -23,7 +23,7 @@
 [workspace]
 resolver = "2"
 members = [
-    "srvr",
+    #"srvr",
     "srvr-async",
     "srvr-sysplugin",
     "srvr-sysproto",

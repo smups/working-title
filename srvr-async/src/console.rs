@@ -51,7 +51,9 @@ impl Console {
 
   pub fn run(mut self) {
     /*
-    
+      Sadly, stdin is always blocking on most platforms.
+      Therefore, we have to run the console on a separate thread from the tokio
+      runtime. It is responsible for shutting itself down.
     */
     use ServerInstruction::*;
 
@@ -73,6 +75,8 @@ impl Console {
             other => warn!("Unknown command \"{other}\"")
           }
         };
+        //Clean the buffer lol
+        self.stdin_buf = String::new();
         thread::sleep(CONSOLE_TICK);
       }
     });

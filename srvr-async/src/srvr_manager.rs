@@ -123,7 +123,8 @@ impl Main {
               //Stop the server
               self.shutdown().await;
               break 'server_tick;
-            }
+            },
+            _ => {} //blahblah
           }
         }
       }
