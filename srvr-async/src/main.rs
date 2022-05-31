@@ -31,6 +31,7 @@ pub use semver::Version;
 mod logger;
 mod config;
 mod client;
+mod console;
 mod srvr_manager;
 
 //Public modules
@@ -87,10 +88,14 @@ fn main() {
 
   //(4) Load plugins (oof!)
 
-  //(5) Start server!
+  //(5) Start Runtime
   runtime.block_on(async {
     match srvr_manager::Main::init().await {
       Ok(mut srvr) => {
+        //(6) Initialise the Console
+        srvr.connect_console().run();
+
+        //(7) Start the server
         info!("Startup complete!");
         srvr.run().await;
       } Err(err) => {

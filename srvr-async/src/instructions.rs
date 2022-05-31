@@ -24,7 +24,7 @@
 
 #[derive(Debug, Clone)]
 pub enum ServerInstruction {
-
+  Die
 }
 
 #[derive(Debug, Clone)]

@@ -37,7 +37,8 @@ use tokio::{
 use crate::{
   config::Config,
   instructions::{ClientInstruction, ServerInstruction},
-  client::Client
+  client::Client,
+  console::Console,
 };
 
 const MAX_QUEUE_LEN: usize = 100;
@@ -81,6 +82,10 @@ impl Main {
     })
   }
 
+  pub fn connect_console(&mut self) -> Console {
+    Console::init(self.queue_tx.clone())
+  }
+
   pub async fn run(&mut self) {
     'server_tick: loop {
       /*(1)
@@ -112,8 +117,13 @@ impl Main {
       */
       while let Ok(maybe) = timeout(TASK_TIMEOUT, self.queue.recv()).await {
         if let Some(task) = maybe {
+          use ServerInstruction::*;
           match task {
-            //There is nothing to do right now lol
+            Die => {
+              //Stop the server
+              self.shutdown().await;
+              break 'server_tick;
+            }
           }
         }
       }
@@ -124,6 +134,10 @@ impl Main {
     -> Result<usize, broadcast::error::SendError<ClientInstruction>>
   {
     self.broadcast.send(msg)
+  }
+
+  pub async fn shutdown(&mut self) {
+    info!("Shutting down...");
   }
 
 }
