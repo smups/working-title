@@ -27,11 +27,14 @@ use tokio::runtime::Builder;
 pub use log::*;
 pub use semver::Version;
 
-//Module structure
+//Private modules
 mod logger;
 mod config;
 mod client;
 mod srvr_manager;
+
+//Public modules
+pub mod instructions;
 
 //Internal deps
 use config::Config;
@@ -89,7 +92,7 @@ fn main() {
     match srvr_manager::Main::init().await {
       Ok(mut srvr) => {
         info!("Startup complete!");
-        srvr.listen().await;
+        srvr.run().await;
       } Err(err) => {
         error!("Could not bind to server socket (reason: \"{}\"). Shutting down...", err);
       }

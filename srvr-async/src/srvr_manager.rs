@@ -24,18 +24,34 @@
 
 use std::{
   error::Error,
-  net::{SocketAddr, Ipv4Addr, IpAddr}
+  net::{SocketAddr, Ipv4Addr, IpAddr},
+  time::Duration
 };
 
-use log::info;
-use tokio::net::TcpListener;
+use log::{info, warn};
+use tokio::{
+  net::TcpListener,
+  sync::{broadcast, mpsc}, time::timeout
+};
 
-use crate::config::Config;
+use crate::{
+  config::Config,
+  instructions::{ClientInstruction, ServerInstruction},
+  client::Client
+};
+
+const MAX_QUEUE_LEN: usize = 100;
+const TCP_TIMEOUT: Duration = Duration::from_millis(10);
+const TASK_TIMEOUT: Duration = Duration::from_millis(1);
 
 #[derive(Debug)]
 pub struct Main {
   config: Config,
-  socket: TcpListener
+  socket: TcpListener,
+  broadcast: broadcast::Sender<ClientInstruction>,
+  queue: mpsc::Receiver<ServerInstruction>,
+  queue_tx: mpsc::Sender<ServerInstruction>,
+  clients: Vec<Client>
 }
 
 impl Main {
@@ -48,20 +64,66 @@ impl Main {
     let ip: IpAddr = Ipv4Addr::from(config.network_settings.ip).into();
     let socket_addr = SocketAddr::new(ip, config.network_settings.port);
     let socket = TcpListener::bind(socket_addr.clone()).await?;
+
+    //(3) Set up the connections to and from the client
+    let (broadcast, _) = broadcast::channel(MAX_QUEUE_LEN);
+    let (tx, instruction_queue) = mpsc::channel(MAX_QUEUE_LEN);
   
     //(R) before we return, say hi to the console
     info!("Server listening @{}", socket_addr);
     Ok(Main {
       config: config,
-      socket: socket
+      socket: socket,
+      broadcast: broadcast,
+      queue: instruction_queue,
+      queue_tx: tx,
+      clients: Vec::new()
     })
   }
 
-  pub async fn listen(&mut self) {
-    loop {
-      let (connection, addr) = self.socket.accept().await.unwrap();
-      info!("Client connected @{}", addr);
+  pub async fn run(&mut self) {
+    'server_tick: loop {
+      /*(1)
+        Look for clients. If no client connects within the time-out period,
+        we continue to the next step in executing the server-tick.
+      */
+      if let Ok(fut) = timeout(TCP_TIMEOUT, self.socket.accept()).await {
+        //(1a) A client connected! Let's unwrap:
+        let (connection, addr) = match fut {
+          Ok((connection, addr)) => (connection, addr),
+          Err(err) => {
+            warn!("could not accept client connection: \"{err}\"");
+            return;
+          }
+        };
+
+        //(1b) Say hi to the console and initialise the client
+        info!("Client connected @{}", addr);
+        let client = Client::init(
+          connection,
+          self.broadcast.subscribe(),
+          self.queue_tx.clone()
+        );
+        self.clients.push(client);
+      }
+
+      /*(2)
+        Next we execute the server tick.
+      */
+      while let Ok(maybe) = timeout(TASK_TIMEOUT, self.queue.recv()).await {
+        if let Some(task) = maybe {
+          match task {
+            //There is nothing to do right now lol
+          }
+        }
+      }
     }
+  }
+
+  pub async fn broadcast(&self, msg: ClientInstruction)
+    -> Result<usize, broadcast::error::SendError<ClientInstruction>>
+  {
+    self.broadcast.send(msg)
   }
 
 }

@@ -22,35 +22,12 @@
   text of the license in any official language of the European Union.
 */
 
-use tokio::{
-  sync::{broadcast, mpsc},
-  net::TcpStream
-};
-
-use crate::instructions::{ClientInstruction, ServerInstruction};
-
-#[derive(Debug)]
-pub struct ClientHandle {
+#[derive(Debug, Clone)]
+pub enum ServerInstruction {
 
 }
 
-#[derive(Debug)]
-pub struct Client {
-  connection: TcpStream,
-  broadcast_listener: broadcast::Receiver<ClientInstruction>,
-  server_handle: mpsc::Sender<ServerInstruction>
-}
-
-impl Client {
-
-  pub fn init(
-    conn: TcpStream,
-    broadcast: broadcast::Receiver<ClientInstruction>,
-    server_handle: mpsc::Sender<ServerInstruction>
-  ) -> Self { Client {
-    connection: conn,
-    broadcast_listener: broadcast,
-    server_handle: server_handle
-  }}
+#[derive(Debug, Clone)]
+pub enum ClientInstruction {
 
 }

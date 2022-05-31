@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 #Async runtime is Tokio (MIT is EUPL compatible)
-tokio = {version="*", features=['rt', 'rt-multi-thread', 'net']}
+tokio = {version="*", features=['rt', 'rt-multi-thread', 'net', 'sync', 'time']}
 
 #Nice utility for dealing with versions
 semver = "*"
