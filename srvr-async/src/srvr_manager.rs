@@ -35,8 +35,11 @@ use tokio::{
 };
 
 use crate::{
+  messages::{
+    broadcast::BroadcastMsg,
+    client_request::{ClientRequest, CReqMsg, CReqRsp}
+  },
   config::Config,
-  instructions::{ClientInstruction, ServerInstruction},
   client::Client,
   console::Console,
 };
@@ -49,9 +52,9 @@ const TASK_TIMEOUT: Duration = Duration::from_millis(1);
 pub struct Main {
   config: Config,
   socket: TcpListener,
-  broadcast: broadcast::Sender<ClientInstruction>,
-  queue: mpsc::Receiver<ServerInstruction>,
-  queue_tx: mpsc::Sender<ServerInstruction>,
+  broadcast: broadcast::Sender<BroadcastMsg>,
+  request_queue: mpsc::Receiver<ClientRequest>,
+  request_queue_tx: mpsc::Sender<ClientRequest>,
   clients: Vec<Client>
 }
 
@@ -68,7 +71,7 @@ impl Main {
 
     //(3) Set up the connections to and from the client
     let (broadcast, _) = broadcast::channel(MAX_QUEUE_LEN);
-    let (tx, instruction_queue) = mpsc::channel(MAX_QUEUE_LEN);
+    let (tx, request_queue) = mpsc::channel(MAX_QUEUE_LEN);
   
     //(R) before we return, say hi to the console
     info!("Server listening @{}", socket_addr);
@@ -76,14 +79,14 @@ impl Main {
       config: config,
       socket: socket,
       broadcast: broadcast,
-      queue: instruction_queue,
-      queue_tx: tx,
+      request_queue: request_queue,
+      request_queue_tx: tx,
       clients: Vec::new()
     })
   }
 
   pub fn connect_console(&mut self) -> Console {
-    Console::init(self.queue_tx.clone())
+    Console::init(self.request_queue_tx.clone())
   }
 
   pub async fn run(&mut self) {
@@ -107,7 +110,7 @@ impl Main {
         let client = Client::init(
           connection,
           self.broadcast.subscribe(),
-          self.queue_tx.clone()
+          self.request_queue_tx.clone()
         );
         self.clients.push(client);
       }
@@ -115,26 +118,24 @@ impl Main {
       /*(2)
         Next we execute the server tick.
       */
-      while let Ok(maybe) = timeout(TASK_TIMEOUT, self.queue.recv()).await {
-        if let Some(task) = maybe {
-          use ServerInstruction::*;
-          match task {
-            Die => {
-              //Stop the server
+      while let Ok(maybe) = timeout(TASK_TIMEOUT, self.request_queue.recv()).await {
+        if let Some(request) = maybe {
+          use CReqMsg::*;
+          //(2a) open the request packet
+          let (msg, tx) = request.open();
+
+          //(2b) match the message and answer
+          match msg {
+            ConsoleKill => {
+              //User has killed the server with a console command
+              tx.send(Ok(CReqRsp::Done)).unwrap();
               self.shutdown().await;
               break 'server_tick;
-            },
-            _ => {} //blahblah
+            }
           }
         }
       }
     }
-  }
-
-  pub async fn broadcast(&self, msg: ClientInstruction)
-    -> Result<usize, broadcast::error::SendError<ClientInstruction>>
-  {
-    self.broadcast.send(msg)
   }
 
   pub async fn shutdown(&mut self) {

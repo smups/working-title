@@ -27,30 +27,34 @@ use tokio::{
   net::TcpStream
 };
 
-use crate::instructions::{ClientInstruction, ServerInstruction};
-
-#[derive(Debug)]
-pub struct ClientHandle {
-
-}
+use crate::messages::{
+  broadcast::BroadcastMsg,
+  client_request::ClientRequest
+};
 
 #[derive(Debug)]
 pub struct Client {
   connection: TcpStream,
-  broadcast_listener: broadcast::Receiver<ClientInstruction>,
-  server_handle: mpsc::Sender<ServerInstruction>
+  broadcast_listener: broadcast::Receiver<BroadcastMsg>,
+  superior: mpsc::Sender<ClientRequest>
 }
 
 impl Client {
 
   pub fn init(
-    conn: TcpStream,
-    broadcast: broadcast::Receiver<ClientInstruction>,
-    server_handle: mpsc::Sender<ServerInstruction>
-  ) -> Self { Client {
-    connection: conn,
-    broadcast_listener: broadcast,
-    server_handle: server_handle
-  }}
+    mut conn: TcpStream,
+    broadcast: broadcast::Receiver<BroadcastMsg>,
+    server_handle: mpsc::Sender<ClientRequest>
+  )
+    -> Self
+  {
+    //(1) To determine if we are in Login
+
+    Client {
+      connection: conn,
+      broadcast_listener: broadcast,
+      superior: server_handle
+    }
+  }
 
 }

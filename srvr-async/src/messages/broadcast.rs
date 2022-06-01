@@ -22,14 +22,8 @@
   text of the license in any official language of the European Union.
 */
 
-use std::future::Future;
-
 #[derive(Debug, Clone)]
-pub enum ServerInstruction {
+pub enum BroadcastMsg {
+  //Instruct all clients to disconnect
   Die
-}
-
-#[derive(Debug, Clone)]
-pub enum ClientInstruction {
-
 }

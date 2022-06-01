@@ -24,7 +24,7 @@
 
 use std::{
   error::Error,
-  fmt::{self, Display, Formatter}
+  fmt::{Display, Formatter}
 };
 
 use tokio::sync::{oneshot, mpsc};
@@ -75,12 +75,12 @@ impl ClientRequest {
 
 #[derive(Debug)]
 pub enum CReqMsg {
-  
+  ConsoleKill
 }
 
 #[derive(Debug)]
 pub enum CReqRsp {
-
+  Done
 }
 
 #[derive(Debug)]

@@ -30,21 +30,19 @@ use std::{
 use log::warn;
 use tokio::sync::mpsc;
 
-use crate::{
-  instructions::ServerInstruction,
-};
+use crate::messages::client_request::{ClientRequest, CReqMsg, CReqRsp, CReqDenied};
 
 const CONSOLE_TICK: Duration = Duration::from_millis(100);
 
 #[derive(Debug)]
 pub struct Console {
-  server_handle: mpsc::Sender<ServerInstruction>,
+  server_handle: mpsc::Sender<ClientRequest>,
   stdin_buf: String
 }
 
 impl Console {
 
-  pub fn init(server_handle: mpsc::Sender<ServerInstruction>) -> Self {
+  pub fn init(server_handle: mpsc::Sender<ClientRequest>) -> Self {
     //Connect to the main server, that's all
     Console { server_handle: server_handle, stdin_buf: String::new() }
   }
@@ -55,7 +53,7 @@ impl Console {
       Therefore, we have to run the console on a separate thread from the tokio
       runtime. It is responsible for shutting itself down.
     */
-    use ServerInstruction::*;
+    use CReqMsg::*;
 
     thread::spawn(move || {
       'console_tick: loop {
@@ -68,7 +66,7 @@ impl Console {
           match self.stdin_buf.as_str() {
             "stop" => {
               //Tell the server to stop
-              self.server_handle.blocking_send(Die).unwrap();
+              self.send_msg(ConsoleKill).unwrap();
               //Then stop ourselves
               break 'console_tick;
             },
@@ -80,6 +78,15 @@ impl Console {
         thread::sleep(CONSOLE_TICK);
       }
     });
+  }
+
+  fn send_msg(&mut self, msg: CReqMsg) -> Result<CReqRsp, CReqDenied>{
+    tokio::runtime::Builder::new_current_thread()
+      .build()
+      .unwrap()
+      .block_on(
+        ClientRequest::send(msg, self.server_handle.clone())
+      )
   }
 
 }

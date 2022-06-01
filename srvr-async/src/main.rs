@@ -35,7 +35,6 @@ mod console;
 mod srvr_manager;
 
 //Public modules
-pub mod instructions;
 pub mod messages;
 
 //Internal deps
