@@ -34,17 +34,28 @@ use crate::messages::client_request::{ClientRequest, CReqMsg, CReqRsp, CReqDenie
 
 const CONSOLE_TICK: Duration = Duration::from_millis(100);
 
-#[derive(Debug)]
 pub struct Console {
   server_handle: mpsc::Sender<ClientRequest>,
-  stdin_buf: String
+  stdin_buf: String,
+  buf_parser: fn(&'_ mut String)
 }
 
 impl Console {
 
   pub fn init(server_handle: mpsc::Sender<ClientRequest>) -> Self {
-    //Connect to the main server, that's all
-    Console { server_handle: server_handle, stdin_buf: String::new() }
+    //(1) Get the OS that we are running on
+    let parser = match std::env::consts::OS {
+      "linux" => stdin_parse_linux,
+      "windows" => stdin_parse_windows,
+      _ => stdin_parse_linux
+    };
+
+    //(2) Make a console
+    Console {
+      server_handle: server_handle,
+      stdin_buf: String::new(),
+      buf_parser: parser
+    }
   }
 
   pub fn run(mut self) {
@@ -59,8 +70,8 @@ impl Console {
       'console_tick: loop {
         //(1) Read from stdin
         if let Ok(_) = stdin().read_line(&mut self.stdin_buf) {
-          //Remove the newline char before continuing!
-          self.stdin_buf.pop();
+          //Parse the buffer before matching
+          (self.buf_parser)(&mut self.stdin_buf);
 
           //Try to execute the command
           match self.stdin_buf.as_str() {
@@ -89,4 +100,15 @@ impl Console {
       )
   }
 
+}
+
+fn stdin_parse_linux(stdin_buf: &mut String) {
+  //Linux stdin includes newline which we should pop
+  stdin_buf.pop();
+}
+
+fn stdin_parse_windows(stdin_buf: &mut String) {
+  //Windows stdin includes newline AND carriage return
+  stdin_buf.pop();
+  stdin_buf.pop();
 }

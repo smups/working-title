@@ -22,6 +22,7 @@
   text of the license in any official language of the European Union.
 */
 
+use log::info;
 use tokio::net::TcpStream;
 
 use srvr_sysproto::{
@@ -60,7 +61,7 @@ pub async fn handle_package(mut raw_pck: RawPacketReader, stream: &mut TcpStream
           \"text\": \"Hello world\"
         }}
       }}", srvr_sysproto::PROTOCOL_VERSION));
-      println!("{response:?}");
+      info!("{response:?}");
       
       //(2.2) Reply with response
       let mut writer = RawPacketWriter::new(response.packet_id());
