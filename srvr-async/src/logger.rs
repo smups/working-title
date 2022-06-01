@@ -28,7 +28,7 @@ use std::{
 };
 
 use chrono::Local;
-use log::{LevelFilter, info, trace, error, warn};
+use log::{LevelFilter, info};
 use log4rs::{
   append::{console::ConsoleAppender, file::FileAppender},
   encode::pattern::PatternEncoder,
@@ -45,15 +45,6 @@ const CHAT_LOG_PATTERN: &'static str=
 //Panic messages
 const PANIC_DIR_MISSING: &'static str =
   "[FATAL STARTUP PANIC] - could not create directory for logfiles: ";
-
-/*
-  Loggin macros
-*/
-macro_rules! chat {
-  ($player:expr, $msg:expr) => {
-    trace!(target: "chat", "{}: {}", ($player), ($msg))
-  };
-}
 
 pub fn start_logger() {
   /*
@@ -78,7 +69,7 @@ pub fn start_logger() {
   }
 
   //(2b) Next we create the logfile based on the current time
-  let now = Local::now().format("%Y-%m-%d_%H:%M:%S");
+  let now = Local::now().format("%Y-%m-%d_%H-%M-%S");
   let log_file_path = format!("{}/[SRVR_LOG]_{}.log", super::LOG_FOLDER, now);
 
   let server_logfile_out = FileAppender::builder()
