@@ -22,34 +22,22 @@
   text of the license in any official language of the European Union.
 */
 
-use std::net::TcpStream;
-
-use super::PackageHandler;
-
-use crate::task::Task;
+use log::info;
+use tokio::net::TcpStream;
 
 use srvr_sysproto::{
   packets::{Packet, SB_Ping, CB_Pong},
   raw_packet::{RawPacketReader, RawPacketWriter}
 };
 
-#[derive(Debug)]
-pub struct Handler;
+pub async fn handle_package(mut raw_pck: RawPacketReader, stream: &mut TcpStream) {
+  //(1) Decode ping packet
+  let ping = SB_Ping::decode(&mut raw_pck).unwrap();
+  info!("{ping:?}");
 
-impl PackageHandler for Handler {
-  fn handle_package(mut raw_pck: RawPacketReader, stream: &mut TcpStream)
-    -> Vec<Task>
-  {
-    //(1) Decode ping packet
-    let ping = SB_Ping::decode(&mut raw_pck).unwrap();
-
-    //(2) Return pong packet
-    let pong = CB_Pong{payload: ping.payload};
-    let mut writer = RawPacketWriter::new(pong.packet_id());
-    pong.encode(&mut writer);
-    writer.write(stream).unwrap();
-
-    //(3) Kill the connection
-    vec![Task::Die]
-  }
+  //(2) Return pong packet
+  let pong = CB_Pong{payload: ping.payload};
+  let mut writer = RawPacketWriter::new(pong.packet_id());
+  pong.encode(&mut writer);
+  writer.write(stream).await.unwrap();
 }

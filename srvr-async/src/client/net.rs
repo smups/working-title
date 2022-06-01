@@ -27,7 +27,7 @@
 */
 //(A) handshake procedure
 pub mod x00_handshake;
-//pub mod x01_pingpong;
+pub mod x01_pingpong;
 //pub mod xfe_serverlist_ping;
 
 //(B) login procedure

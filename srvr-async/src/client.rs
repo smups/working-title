@@ -52,12 +52,25 @@ impl Client {
   )
     -> Option<Self>
   {
-    //(1) We always start the connection with a handshake packet
-    let mut packet = RawPacketReader::read(&mut conn).await.unwrap();
-    let next = match packet.get_package_id() {
-      0x00 => x00_handshake::handle_package(packet, &mut conn).await,
-      _ => {return None;} //do nothing
-    };
+    //If the connecting client only wants to handshake, we never return a handle
+    loop {
+      let packet = RawPacketReader::read(&mut conn).await.unwrap();
+      match packet.get_package_id() {
+        0x00 => {
+          //If the client indicates he wants to login, we break the loop
+          if let 0x02 = x00_handshake::handle_package(packet, &mut conn).await {
+            break;
+          }
+        },
+        0x01 => {
+          //We answer the ping with a pong, then drop the connection
+          x01_pingpong::handle_package(packet, &mut conn).await;
+          return None;
+        },
+        0xfe => {}, //legacy ping
+        _ => {return None;} //This is invalid
+      }
+    }
 
     Some(Client {
       connection: conn,

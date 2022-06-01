@@ -71,10 +71,6 @@ pub async fn handle_package(mut raw_pck: RawPacketReader, stream: &mut TcpStream
       //(R) Do nothing
       0x01
     },
-    0x02 => {
-      //Code 2: Login Request, change login flag to true
-      0x02
-    },
-    _ => 0x03
+    other => other
   }
 }
