@@ -446,6 +446,8 @@ dependencies = [
  "log4rs",
  "semver",
  "serde",
+ "srvr-sysplugin",
+ "srvr-sysproto",
  "time 0.3.9",
  "tokio",
  "toml",

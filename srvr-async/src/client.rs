@@ -22,6 +22,7 @@
   text of the license in any official language of the European Union.
 */
 
+use srvr_sysproto::{raw_packet::RawPacketReader, packets::SB_Handshake};
 use tokio::{
   sync::{broadcast, mpsc},
   net::TcpStream
@@ -32,6 +33,9 @@ use crate::messages::{
   client_request::ClientRequest
 };
 
+mod net;
+use net::*;
+
 #[derive(Debug)]
 pub struct Client {
   connection: TcpStream,
@@ -41,20 +45,25 @@ pub struct Client {
 
 impl Client {
 
-  pub fn init(
+  pub async fn init(
     mut conn: TcpStream,
     broadcast: broadcast::Receiver<BroadcastMsg>,
     server_handle: mpsc::Sender<ClientRequest>
   )
-    -> Self
+    -> Option<Self>
   {
-    //(1) To determine if we are in Login
+    //(1) We always start the connection with a handshake packet
+    let mut packet = RawPacketReader::read(&mut conn).await.unwrap();
+    let next = match packet.get_package_id() {
+      0x00 => x00_handshake::handle_package(packet, &mut conn).await,
+      _ => {return None;} //do nothing
+    };
 
-    Client {
+    Some(Client {
       connection: conn,
       broadcast_listener: broadcast,
       superior: server_handle
-    }
+    })
   }
 
 }

@@ -9,6 +9,10 @@ edition = "2021"
 #Async runtime is Tokio (MIT is EUPL compatible)
 tokio = {version="*", features=['rt', 'rt-multi-thread', 'net', 'sync', 'time']}
 
+#srvr dependencies
+srvr-sysplugin = { path = "../srvr-sysplugin", version = "*" }
+srvr-sysproto = {path = "../srvr-sysproto", version = "*"}
+
 #Nice utility for dealing with versions
 semver = "*"
 

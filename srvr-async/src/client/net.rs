@@ -22,25 +22,15 @@
   text of the license in any official language of the European Union.
 */
 
-use std::net::TcpStream;
-
-use srvr_sysproto::raw_packet::RawPacketReader;
-
-use crate::task::Task;
-
-pub trait PackageHandler {
-  fn handle_package(raw_pck: RawPacketReader, stream: &mut TcpStream) -> Vec<Task>;
-}
-
 /*
   List of package handlers
 */
 //(A) handshake procedure
 pub mod x00_handshake;
-pub mod x01_pingpong;
-pub mod xfe_serverlist_ping;
+//pub mod x01_pingpong;
+//pub mod xfe_serverlist_ping;
 
 //(B) login procedure
-pub mod x00_login;
+//pub mod x00_login;
 
 //(C) Play
