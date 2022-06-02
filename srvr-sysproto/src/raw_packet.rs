@@ -26,7 +26,10 @@ use std::{
   error::Error}
 ;
 
-use tokio::net::TcpStream;
+use tokio::{
+  io::{AsyncReadExt, AsyncWriteExt},
+  net::TcpStream
+};
 
 use crate::mc_dtypes::{MCVarInt, MCDataType};
 
@@ -53,8 +56,7 @@ impl RawPacketReader {
       that.
     */
     let mut tmp_buf = vec![0u8;3];
-    stream.readable().await?;
-    stream.try_read(&mut tmp_buf)?;
+    stream.read(&mut tmp_buf).await?;
     let mut tmp_reader= RawPacketReader::from_raw(tmp_buf);
 
     let package_len: i32 = MCVarInt::decode(&mut tmp_reader)?.into();
@@ -158,8 +160,7 @@ impl RawPacketWriter {
     full_buf.append(&mut self.bytes);
 
     //(4) Now we write the bytes to the stream
-    stream.writable().await?;
-    stream.try_write(&full_buf)?;
+    stream.write(&full_buf).await?;
     Ok(())
   }
 

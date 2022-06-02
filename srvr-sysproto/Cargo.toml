@@ -32,7 +32,7 @@ simple-error = "*"
 byteorder = "*"
 serde = {version="*", features=["derive"]}
 serde_json = "*"
-tokio = {version="*", features=['net']}
+tokio = {version="*", features=['net', 'io-util']}
 
 [dev-dependencies]
 rand = "*"
