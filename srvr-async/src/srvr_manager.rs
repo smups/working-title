@@ -106,17 +106,12 @@ impl Main {
         };
 
         //(1b) Say hi to the console and initialise the client
-        info!("Client connected @{}", addr);
         if let Some(client) = Client::init(
           connection,
+          addr,
           self.broadcast.subscribe(),
           self.request_queue_tx.clone()
-        ).await
-        {
-          self.clients.push(client);
-        } else {
-          warn!("oopsie!");
-        }
+        ).await{ self.clients.push(client); }
       }
 
       /*(2)

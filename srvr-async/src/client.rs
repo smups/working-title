@@ -22,7 +22,10 @@
   text of the license in any official language of the European Union.
 */
 
-use srvr_sysproto::{raw_packet::RawPacketReader, packets::SB_Handshake};
+use std::net::SocketAddr;
+
+use log::{warn, info};
+use srvr_sysproto::{raw_packet::RawPacketReader};
 use tokio::{
   sync::{broadcast, mpsc},
   net::TcpStream
@@ -47,36 +50,77 @@ impl Client {
 
   pub async fn init(
     mut conn: TcpStream,
+    addr: SocketAddr,
     broadcast: broadcast::Receiver<BroadcastMsg>,
     server_handle: mpsc::Sender<ClientRequest>
   )
     -> Option<Self>
   {
-    //If the connecting client only wants to handshake, we never return a handle
-    loop {
+    info!("Client connected @{}", addr);
+    /*(Note to future self)
+      A client that just connected can want one of three things:
+        (1) Do a Handshake, possibly followed by a ping
+        (2) Do a ping or a server-list ping (without a handshake)
+        (3) Join the game
+      Modern minecraft clients don't ever do (2) and place pretty strict bounds
+      on how quickly the server must respond with a pong packet in the case they
+      send a ping packet, since it is meant to measure the connection speed.
+
+      In fact, we can't close the connection after the handshake packet in case
+      the client wants to send a ping packet, even if the client drops the
+      connection (which vanilla clients do) because re-opening the connection to
+      receive the ping packet takes too long.
+
+      Therefore, we only close the connection if the reader has confirmed 5 times
+      that the client has indeed disconnected.
+    */
+    let mut disconnect_counter = 0usize;
+
+    'handshake: loop {
       let packet = RawPacketReader::read(&mut conn).await.unwrap();
       match packet.get_package_id() {
         0x00 => {
           //If the client indicates he wants to login, we break the loop
           if let 0x02 = x00_handshake::handle_package(packet, &mut conn).await {
-            break;
+            break 'handshake;
           }
         },
         0x01 => {
           //We answer the ping with a pong, then drop the connection
           x01_pingpong::handle_package(packet, &mut conn).await;
+          info!("Ping-Pong! Client disconnected @{}", &addr);
           return None;
         },
-        0xfe => {}, //legacy ping
-        _ => {return None;} //This is invalid
+        0xfe => {}, //legacy ping, not implemented for now
+        usize::MAX if disconnect_counter >= 5 => {
+          //Connection was dropped 5 times, give up on this client
+          info!("Client disconnected @{}", &addr);
+          return None;
+        },
+        usize::MAX => disconnect_counter += 1,
+        opcode => {
+          //Invalid Opcode
+          warn!("Client @{} sent invalid opcode {opcode:#x}", &addr);
+          return None;
+        }
       }
     }
 
+    //We broke out of the loop because the client wants to login and then play
+    //Login will be han
     Some(Client {
       connection: conn,
       broadcast_listener: broadcast,
       superior: server_handle
     })
+  }
+
+  pub fn login(&mut self) {
+
+  }
+
+  fn play(&mut self) {
+
   }
 
 }

@@ -22,7 +22,7 @@
   text of the license in any official language of the European Union.
 */
 
-use log::info;
+use log::trace;
 use tokio::net::TcpStream;
 
 use srvr_sysproto::{
@@ -33,7 +33,7 @@ use srvr_sysproto::{
 pub async fn handle_package(mut raw_pck: RawPacketReader, stream: &mut TcpStream) {
   //(1) Decode ping packet
   let ping = SB_Ping::decode(&mut raw_pck).unwrap();
-  info!("{ping:?}");
+  trace!("{ping:?}");
 
   //(2) Return pong packet
   let pong = CB_Pong{payload: ping.payload};
