@@ -22,14 +22,14 @@
   text of the license in any official language of the European Union.
 */
 
-use std::net::SocketAddr;
+use std::{net::SocketAddr, time::{Duration, Instant}};
 
 use log::{warn, info};
 use rand::Rng;
 use srvr_sysproto::{raw_packet::RawPacketReader};
 use tokio::{
   sync::{broadcast, mpsc},
-  net::TcpStream
+  net::TcpStream, time::timeout
 };
 
 use crate::messages::{
@@ -37,8 +37,15 @@ use crate::messages::{
   client_request::ClientRequest
 };
 
+
+//Modules internal to the client
 mod net;
 use net::*;
+
+//Constants
+const TICK_DURATION: Duration = Duration::from_millis(50);
+const TCP_TIMEOUT: Duration = Duration::from_millis(10);
+const BROADCAST_TIMEOUT: Duration = Duration::from_micros(100);
 
 #[derive(Debug)]
 pub struct Client {
@@ -159,7 +166,41 @@ impl Client {
   }
 
   async fn play(mut self, username: String) {
+    /*(Note to future self) */
     info!("Player \"{username}\" joined the game!");
+
+    //First lets define some global vars
+    let mut loop_start = Instant::now();
+    'tick_loop: loop {
+      //(*) Listen for client packages
+      if let Ok(read_result) = timeout(
+        TCP_TIMEOUT,
+        RawPacketReader::read(&mut self.connection)
+      ).await {
+        if let Ok(packet) = read_result { match packet.get_package_id() {
+          usize::MAX => {
+            //Client has disconnected -> shutdown
+            info!("Client disconnected @{}", &self.addr);
+            return;
+          },
+          invalid_opcode => {
+            //Invalid Opcode
+            warn!("Client @{} sent invalid opcode {invalid_opcode:#04x}", &self.addr);
+          }
+        }}
+      }
+
+      /*(*)
+        To prevent unnecessarily loading the server we should wait if we
+        completed this tick too fast
+      */
+      if loop_start.elapsed() < TICK_DURATION {
+        tokio::time::sleep(TICK_DURATION - loop_start.elapsed()).await;
+      } else {
+        warn!("Client overloaded, tick took {}ms", loop_start.elapsed().as_millis());
+      }
+      loop_start = Instant::now();
+    }
     info!("Client disconnected @{}", &self.addr);
   }
 
