@@ -25,6 +25,7 @@
 use std::net::SocketAddr;
 
 use log::{warn, info};
+use rand::Rng;
 use srvr_sysproto::{raw_packet::RawPacketReader};
 use tokio::{
   sync::{broadcast, mpsc},
@@ -41,12 +42,15 @@ use net::*;
 
 #[derive(Debug)]
 pub struct Client {
+  client_id: u128,
   connection: TcpStream,
   broadcast_listener: broadcast::Receiver<BroadcastMsg>,
   superior: mpsc::Sender<ClientRequest>
 }
 
 impl Client {
+
+  pub fn get_id(&self) -> u128 {self.client_id}
 
   pub async fn init(
     mut conn: TcpStream,
@@ -107,8 +111,9 @@ impl Client {
     }
 
     //We broke out of the loop because the client wants to login and then play
-    //Login will be han
+    //We hand control of the client over to the server manager
     Some(Client {
+      client_id: rand::thread_rng().gen(),
       connection: conn,
       broadcast_listener: broadcast,
       superior: server_handle

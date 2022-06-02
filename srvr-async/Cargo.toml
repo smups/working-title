@@ -27,3 +27,6 @@ chrono = "*"
 #serde stuff
 serde = {version="*", features=['derive']}
 toml = "*"
+
+#random numbers
+rand = "*"
