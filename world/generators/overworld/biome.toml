@@ -1,0 +1,25 @@
+[minecraft-the_void]
+id = 0
+category = "none"
+downfall = 0.5
+precipitation = "none"
+temperature = 0.5
+[minecraft-the_void.effects]
+fog_color = 12638463
+sky_color = 8103167
+water_color = 4159204
+water_fog_color = 329011
+mood_sound = {block_search_extent=8, offset=2.0, sound="minecraft:ambient_cave", tick_delay=6000}
+
+[minecraft-plains]
+id = 1
+category = "plains"
+downfall = 0.5
+precipitation = "none"
+temperature = 0.5
+[minecraft-pains.effects]
+fog_color = 12638463
+sky_color = 8103167
+water_color = 4159204
+water_fog_color = 329011
+mood_sound = {block_search_extent=8, offset=2.0, sound="minecraft:ambient_cave", tick_delay=6000}

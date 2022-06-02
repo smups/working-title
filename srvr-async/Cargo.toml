@@ -6,12 +6,10 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-#Async runtime is Tokio (MIT is EUPL compatible)
-tokio = {version="*", features=['rt', 'rt-multi-thread', 'net', 'sync', 'time']}
-
 #srvr dependencies
-srvr-sysplugin = { path = "../srvr-sysplugin", version = "*" }
-srvr-sysproto = {path = "../srvr-sysproto", version = "*"}
+srvr-sysplugin = {path="../srvr-sysplugin", version="*" }
+srvr-sysproto = {path="../srvr-sysproto", version="*"}
+srvr-sysworldgen = {path="../srvr-sysworldgen", version="*"}
 
 #Nice utility for dealing with versions
 semver = "*"
@@ -30,3 +28,14 @@ toml = "*"
 
 #random numbers
 rand = "*"
+
+#Async runtime is Tokio (MIT is EUPL compatible)
+[dependencies.tokio]
+version = "*"
+features = [
+  'rt',
+  'rt-multi-thread',
+  'net',
+  'sync',
+  'time'
+]

@@ -6,3 +6,9 @@ stack_size = 2048
 [network_settings]
 ip = [127,0,0,1]
 port = 25565
+
+[worlds]
+default = {name="overworld", generator="overworld"}
+
+[world_generators]
+overworld = {folder="overworld", biomes="overworld"}

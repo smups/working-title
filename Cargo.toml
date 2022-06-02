@@ -27,6 +27,7 @@ members = [
     "srvr-async",
     "srvr-sysplugin",
     "srvr-sysproto",
+    "srvr-sysworldgen",
     #"srvr-sysnbt",
     "sample-plugin",
 ]
