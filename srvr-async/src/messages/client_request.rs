@@ -80,7 +80,12 @@ pub enum CReqMsg {
 
 #[derive(Debug)]
 pub enum CReqRsp {
-  Done
+  //Do nothing
+  Done,
+  //Client must switch communication channels to this new supervisor
+  ChangeSuperior{
+    new_request_queue: mpsc::Sender<ClientRequest>
+  }
 }
 
 #[derive(Debug)]

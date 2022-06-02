@@ -456,6 +456,7 @@ dependencies = [
  "chrono",
  "log",
  "log4rs",
+ "rand",
  "semver",
  "serde",
  "srvr-sysplugin",

@@ -44,6 +44,7 @@ use net::*;
 pub struct Client {
   client_id: u128,
   connection: TcpStream,
+  addr: SocketAddr,
   broadcast_listener: broadcast::Receiver<BroadcastMsg>,
   superior: mpsc::Sender<ClientRequest>
 }
@@ -102,9 +103,9 @@ impl Client {
           return None;
         },
         usize::MAX => disconnect_counter += 1,
-        opcode => {
+        invalid_opcode => {
           //Invalid Opcode
-          warn!("Client @{} sent invalid opcode {opcode:#x}", &addr);
+          warn!("Client @{} sent invalid opcode {invalid_opcode:#04x}", &addr);
           return None;
         }
       }
@@ -115,17 +116,51 @@ impl Client {
     Some(Client {
       client_id: rand::thread_rng().gen(),
       connection: conn,
+      addr: addr,
       broadcast_listener: broadcast,
       superior: server_handle
     })
   }
 
-  pub fn login(&mut self) {
+  pub fn login(mut self) {
+    /*(Note to future self)
+      We start the login process right here
+    */
+    tokio::spawn(async move {
+      //(1) We start the login loop
+      info!("Login Request from Client @{}", &self.addr);
+      let username;
 
+      'login: loop {
+        let packet = RawPacketReader::read(&mut self.connection).await.unwrap();
+        match packet.get_package_id() {
+          0x00 => {
+            //We handle the login request and break the loop to continue to the
+            //play phase
+            username = x00_login::handle_package(packet, &mut self.connection).await;
+            break 'login;
+          }
+          usize::MAX => {
+            //Client has disconnected, we should NOT try to proceed to play phase
+            info!("Client disconnected @{}", &self.addr);
+            return;
+          },
+          invalid_opcode => {
+            //Invalid Opcode
+            warn!("Client @{} sent invalid opcode {invalid_opcode:#04x}", &self.addr);
+          }
+        }
+      }
+
+      //(2) Loop was broken so login was successful! We may continue to the play
+      //phase
+      self.play(username).await;
+    });
   }
 
-  fn play(&mut self) {
-
+  async fn play(mut self, username: String) {
+    info!("Player \"{username}\" joined the game!");
+    info!("Client disconnected @{}", &self.addr);
   }
 
 }

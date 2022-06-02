@@ -54,8 +54,7 @@ pub struct Main {
   socket: TcpListener,
   broadcast: broadcast::Sender<BroadcastMsg>,
   request_queue: mpsc::Receiver<ClientRequest>,
-  request_queue_tx: mpsc::Sender<ClientRequest>,
-  clients: Vec<Client>
+  request_queue_tx: mpsc::Sender<ClientRequest>
 }
 
 impl Main {
@@ -80,8 +79,7 @@ impl Main {
       socket: socket,
       broadcast: broadcast,
       request_queue: request_queue,
-      request_queue_tx: tx,
-      clients: Vec::new()
+      request_queue_tx: tx
     })
   }
 
@@ -105,13 +103,17 @@ impl Main {
           }
         };
 
-        //(1b) Say hi to the console and initialise the client
+        //(1b) Initialise the client (or drop it if it does not want to login)
         if let Some(client) = Client::init(
           connection,
           addr,
           self.broadcast.subscribe(),
           self.request_queue_tx.clone()
-        ).await{ self.clients.push(client); }
+        ).await {
+          //(1c) Client has successfully passed the init (handshake) phase
+          //next, we must tell it to log-in (we LOSE ownership of the client)
+          client.login();
+        }
       }
 
       /*(2)
