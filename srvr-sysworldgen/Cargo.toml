@@ -3,6 +3,12 @@ name = "srvr-sysworldgen"
 version = "0.1.0"
 edition = "2021"
 
+[features]
+default = []
+worldgen = []
+
 [dependencies]
 serde = {version="*", features=['derive']}
 toml = "*"
+libloading = "*"
+log = "*"

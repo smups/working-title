@@ -22,11 +22,49 @@
   text of the license in any official language of the European Union.
 */
 
-//Modules
-mod builder_config;
-mod world_gen;
+use std::fmt::Debug;
 
-pub mod world_builder;
+use log::info;
 
-#[cfg(feature="worldgen")]
-pub use world_gen::*;
+use crate::builder_config::BuilderConfig;
+
+#[derive(Debug)]
+pub struct WorldGenerator {
+  name: String,
+  id: u32,
+  config: BuilderConfig,
+  generator: Box<dyn GenDyLib>
+}
+
+impl WorldGenerator {
+  pub fn new(config: BuilderConfig, generator: Box<dyn GenDyLib>) -> Self {
+    info!("Created new world generator \"{}\"", config.general.name);
+    WorldGenerator {
+      name: config.general.name.clone(),
+      id: config.general.id,
+      config: config,
+      generator: generator
+    }
+  }
+}
+
+pub trait GenDyLib: Debug {
+
+}
+
+pub unsafe trait LinkGenDyLib: GenDyLib {
+  unsafe extern "Rust" fn link() -> Box<dyn GenDyLib>;
+}
+
+#[macro_export]
+macro_rules! link_generator {
+  ($generator:ident) => {
+    use srvr_sysworldgen::LinkGenDyLib;
+    unsafe impl LinkGenDyLib for $generator {
+      #[no_mangle]
+      unsafe extern "Rust" fn link() -> Box<dyn GenDyLib> {
+        Box::new($generator::new())
+      }
+    }
+  };
+}
