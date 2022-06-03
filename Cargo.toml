@@ -29,5 +29,8 @@ members = [
     "srvr-sysproto",
     "srvr-sysworldgen",
     #"srvr-sysnbt",
+    #Default plugins
     "sample-plugin",
+    #Default world generators
+    "srvr-wgsuperflat"
 ]

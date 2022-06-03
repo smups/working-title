@@ -22,6 +22,12 @@
   text of the license in any official language of the European Union.
 */
 
+use std::{fs, error::Error};
+
+//Internal deps
+use config::Config;
+use srvr_sysworldgen::{self, WorldGenerator, world_builder::WorldBuilder};
+
 //External deps
 use tokio::runtime::Builder;
 pub use log::*;
@@ -37,17 +43,14 @@ mod srvr_manager;
 //Public modules
 pub mod messages;
 
-//Internal deps
-use config::Config;
-
 //Version
 pub const VERSION: Version = Version::new(0,0,1);
 
 //Folders and files
 pub const LOG_FOLDER: &'static str = "./logs";
-pub const ASSET_FOLDER: &'static str = "./assets";
 pub const PLUGIN_FOLDER: &'static str = "./plugins";
 pub const CONFIG_FILE: &'static str = "./config.toml";
+pub const WORLD_BUILDER_FOLDER: &'static str = "./world/generators";
 
 //Public configuration file
 pub static mut CONFIG: Option<Config> = None;
@@ -67,6 +70,34 @@ fn main() {
     }
   };
   let config = config::copy_config();
+
+  //(3) Look in the world builder folder and try to turn each entry into a world
+  //builder
+  info!("Loading worldbuilders...");
+  let builder_folder = match fs::read_dir(WORLD_BUILDER_FOLDER) {
+    Ok(folder) => folder,
+    Err(err) => {
+      error!("Could not open worldbuilder folder (reason: \"{err}\"");
+      return;
+    }
+  };
+  let builders: Vec<WorldGenerator> = builder_folder.into_iter()
+    .filter(|entry| entry.is_ok())
+    .filter(|entry| entry.as_ref().unwrap().path().is_dir())
+    .map(|entry| entry.unwrap().path())
+    .map(|path| -> Option<WorldGenerator> {
+      let generator = WorldBuilder::build(path.clone());
+      match generator {
+        Ok(generator) => Some(generator),
+        Err(err) => {
+          warn!("Could not create generator from folder {path:#?}. Reason: \"{err}\"");
+          None
+        }
+      }
+    })
+    .filter(|builder| builder.is_some())
+    .map(|builder| builder.unwrap())
+    .collect();
 
   //(3) Set-up the async threadpool
   let runtime = match Builder::new_multi_thread()
