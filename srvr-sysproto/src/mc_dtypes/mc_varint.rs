@@ -123,7 +123,6 @@ mod mc_varint_test{
   #[test]
   fn read_test(){
     read_test!(vec![0x00], 0);
-    read_test!(vec![0x00], 0);
     read_test!(vec![0x01], 1);
     read_test!(vec![0x02], 2);
     read_test!(vec![0x7f], 127);
@@ -138,7 +137,6 @@ mod mc_varint_test{
 
   #[test]
   fn write_test() {
-    write_test!(vec![0x00], 0);
     write_test!(vec![0x00], 0);
     write_test!(vec![0x01], 1);
     write_test!(vec![0x02], 2);
