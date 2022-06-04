@@ -31,17 +31,15 @@ use crate::builder_config::BuilderConfig;
 #[derive(Debug, Clone)]
 pub struct WorldGenerator {
   name: String,
-  id: u32,
   config: BuilderConfig,
   generator: Arc<Box<dyn GenDyLib>>
 }
 
 impl WorldGenerator {
   pub fn new(config: BuilderConfig, generator: Box<dyn GenDyLib>) -> Self {
-    info!("Created new world generator \"{}\"", config.general.name);
+    info!("Linked to world generator \"{}\"", config.general.name);
     WorldGenerator {
       name: config.general.name.clone(),
-      id: config.general.id,
       config: config,
       generator: Arc::new(generator)
     }
