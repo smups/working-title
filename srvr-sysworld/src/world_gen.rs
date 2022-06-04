@@ -46,6 +46,8 @@ impl WorldGenerator {
       generator: generator
     }
   }
+
+  pub fn get_name(&self) -> String {self.name.clone()}
 }
 
 pub trait GenDyLib: Debug {

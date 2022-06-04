@@ -7,8 +7,20 @@ stack_size = 2048
 ip = [127,0,0,1]
 port = 25565
 
-[worlds]
-default = {name="overworld", generator="overworld"}
+[world_settings]
+default = "lobby"
 
-[world_generators]
-overworld = {folder="overworld", biomes="overworld"}
+  [[world_settings.worlds]]
+  name = "lobby"
+  file_name = "lobby"
+  generator = "superflat"
+
+  [[world_settings.worlds]]
+  name = "nether"
+  file_name = "nether"
+  generator = "nether"
+
+  [[world_settings.worlds]]
+  name = "end"
+  file_name = "end"
+  generator = "end"

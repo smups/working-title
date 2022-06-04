@@ -46,7 +46,8 @@ pub fn copy_config() -> Config {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Config {
   pub general_settings: GeneralSettings,
-  pub network_settings: NetworkSettings
+  pub network_settings: NetworkSettings,
+  pub world_settings: WorldSettings
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -60,4 +61,17 @@ pub struct GeneralSettings {
 pub struct NetworkSettings {
   pub ip: [u8; 4],
   pub port: u16
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WorldSettings {
+  pub default: String,
+  pub worlds: Vec<World>
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct World {
+  pub name: String,
+  pub file_name: String,
+  pub generator: String
 }
