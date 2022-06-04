@@ -24,22 +24,45 @@
 
 use std::{
   error::Error,
-  fmt::{Display, Formatter, self}
+  fmt::{Display, Formatter, self},
+  path::PathBuf, fs::{File, self}
 };
 
+use log::{info, error};
+
 use crate::{world::World, WorldGenerator};
+
+const WORLD_FILE_EXT: &'static str = ".srvrsave";
 
 #[derive(Debug)]
 pub struct WorldBuilder;
 
 impl WorldBuilder {
-  pub fn build(gen: WorldGenerator, world_name: String, file_name: &str)
+  pub fn build(gen: WorldGenerator, world_name: String, mut save_folder: PathBuf)
     -> Result<World, WorldBuilderError>
   {
-    todo!()
+    //(1) Create the save folder if it does not exist
+    if !save_folder.exists() { if let Err(err) = fs::create_dir(&save_folder) {
+      error!("Could not create save folder, reason: \"{err}\"")
+    }}
+
+    //(2) Get the path of the savefile (it may not exist)
+    save_folder.push(&(world_name.clone() + WORLD_FILE_EXT));
+    if save_folder.exists() {
+      //(2a) Load the saved game
+      let save_file = File::open(save_folder).unwrap();
+      return Ok(World::load(gen, save_file, world_name)?)
+    } else {
+      //(2b) Try to create a new file, then generate a new world
+      let save_file = match File::create(&save_folder) {
+        Ok(file) => file,
+        Err(err) => return Err(format!("Could not create world file, reason: \"{err}\"").into())
+      };
+      info!("Could not find savegame \"{save_folder:?}\"");
+      return Ok(World::new(gen, save_file, world_name)?)
+    }
   }
 }
-
 
 #[derive(Debug)]
 pub struct WorldBuilderError(String);
