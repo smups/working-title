@@ -27,7 +27,7 @@ mod builder_config;
 mod world_gen;
 
 #[cfg(feature="world_builder")]
-pub mod world_builder;
+pub mod generator_builder;
 
 #[cfg(feature="worldgen")]
 pub use world_gen::*;

@@ -39,13 +39,13 @@ use crate::{
 const WORLD: &'static str = "world.toml";
 //const BIOME: &'static str = "biome.toml"; <- don't need this for now
 
-type WBErr = WorldBuilderError;
+type GBErr = GeneratorBuilderError;
 
 #[derive(Debug)]
-pub struct WorldBuilder;
-impl WorldBuilder {
+pub struct GeneratorBuilder;
+impl GeneratorBuilder {
 
-  pub fn build(settings_folder: PathBuf) -> Result<WorldGenerator, WBErr> {
+  pub fn build(settings_folder: PathBuf) -> Result<WorldGenerator, GBErr> {
     //(1) Try to parse the configuration file
     let settings = Self::get_settings(settings_folder.clone())?;
 
@@ -56,7 +56,7 @@ impl WorldBuilder {
     Ok(WorldGenerator::new(settings, dylib))
   }
 
-  fn get_settings(settings_folder: PathBuf) -> Result<BuilderConfig, WBErr> {
+  fn get_settings(settings_folder: PathBuf) -> Result<BuilderConfig, GBErr> {
     //(1) Try to open the config file
     let mut world_settings_path = settings_folder;
     world_settings_path.push(WORLD);
@@ -94,7 +94,7 @@ impl WorldBuilder {
     folder
   }
 
-  fn link_generator(dylib_file: PathBuf) -> Result<Box<dyn GenDyLib>, WBErr> {
+  fn link_generator(dylib_file: PathBuf) -> Result<Box<dyn GenDyLib>, GBErr> {
     //(1) Try to load the dynamic library (eek)
     let lib = match unsafe {Library::new(dylib_file)} {
       Ok(dylib) => dylib,
@@ -116,17 +116,17 @@ impl WorldBuilder {
 }
 
 #[derive(Debug)]
-pub struct WorldBuilderError(String);
+pub struct GeneratorBuilderError(String);
 
-impl From<String> for WBErr {
+impl From<String> for GBErr {
   fn from(msg: String) -> Self { Self(msg) }
 }
-impl From<&str> for WBErr {
+impl From<&str> for GBErr {
   fn from(msg: &str) -> Self { Self(msg.to_string()) }
 }
 
-impl Error for WBErr {}
-impl Display for WBErr {
+impl Error for GBErr {}
+impl Display for GBErr {
   fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
     write!(f, "{}", self.0)
   }

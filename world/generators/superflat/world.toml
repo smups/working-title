@@ -1,6 +1,6 @@
 [general]
 id = 0
-name = "minecraft:overworld"
+name = "superflat"
 dylib_generator = "overworld_generator"
 
 [world_gen]

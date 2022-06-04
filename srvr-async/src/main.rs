@@ -22,14 +22,17 @@
   text of the license in any official language of the European Union.
 */
 
-use std::{fs, error::Error};
+use std::{
+  fs,
+  collections::HashMap
+};
 
 //Internal deps
 use config::Config;
 use srvr_sysworldgen::{
   self,
   WorldGenerator,
-  world_builder::WorldBuilder
+  generator_builder::GeneratorBuilder
 };
 
 //External deps
@@ -85,12 +88,13 @@ fn main() {
       return;
     }
   };
+
   let builders: Vec<WorldGenerator> = builder_folder.into_iter()
     .filter(|entry| entry.is_ok())
     .filter(|entry| entry.as_ref().unwrap().path().is_dir())
     .map(|entry| entry.unwrap().path())
     .map(|path| -> Option<WorldGenerator> {
-      let generator = WorldBuilder::build(path.clone());
+      let generator = GeneratorBuilder::build(path.clone());
       match generator {
         Ok(generator) => Some(generator),
         Err(err) => {
@@ -102,6 +106,13 @@ fn main() {
     .filter(|builder| builder.is_some())
     .map(|builder| builder.unwrap())
     .collect();
+
+  //Put all the builders in a hashmap with their name
+  let mut builder_map: HashMap<String, WorldGenerator> = builders.into_iter()
+    .map(|builder| (builder.get_name(), builder))
+    .collect();
+
+  //(4) Load all the worlds and give them a world generator
 
   //(3) Set-up the async threadpool
   let runtime = match Builder::new_multi_thread()
