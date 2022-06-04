@@ -24,7 +24,7 @@
 
 use std::{
   fs,
-  collections::HashMap
+  collections::HashMap, path::PathBuf
 };
 
 //Internal deps
@@ -59,6 +59,7 @@ pub const VERSION: Version = Version::new(0,0,1);
 pub const LOG_FOLDER: &'static str = "./logs";
 pub const PLUGIN_FOLDER: &'static str = "./plugins";
 pub const CONFIG_FILE: &'static str = "./config.toml";
+pub const WORLD_FOLDER: &'static str = "./world";
 pub const WORLD_BUILDER_FOLDER: &'static str = "./world/generators";
 
 //Public configuration file
@@ -80,10 +81,17 @@ fn main() {
   };
   let config = config::copy_config();
 
-  //(3) Look in the world builder folder and try to turn each entry into a world
-  //builder
+
+  /* (3)
+    Now we load and link the world generator binaries. This has to be done BEFORE
+    the worlds themselves are initialized, as they may not exist yet and therefore
+    require world generation before we can start the server.
+  */
   info!("Loading worldbuilders...");
-  let builder_folder = match fs::read_dir(WORLD_BUILDER_FOLDER) {
+
+  //(3a) The generators are inside folders. We traverse the root world gen folder
+  //to find all world generators
+  let gen_folder = match fs::read_dir(WORLD_BUILDER_FOLDER) {
     Ok(folder) => folder,
     Err(err) => {
       error!("Could not open worldbuilder folder (reason: \"{err}\"");
@@ -91,7 +99,8 @@ fn main() {
     }
   };
 
-  let generators: Vec<WorldGenerator> = builder_folder.into_iter()
+  //(3b) Next we turn the contents of the worldgen folders into actual generators
+  let generators: Vec<WorldGenerator> = gen_folder.into_iter()
     .filter(|entry| entry.is_ok())
     .filter(|entry| entry.as_ref().unwrap().path().is_dir())
     .map(|entry| entry.unwrap().path())
@@ -109,38 +118,47 @@ fn main() {
     .map(|builder| builder.unwrap())
     .collect();
 
-  //Put all the builders in a hashmap with their name
+  //(3c) Finally we add all the generators to a hashmap
   let generator_map: HashMap<String, WorldGenerator> = generators.into_iter()
     .map(|gen| (gen.get_name(), gen))
     .collect();
 
-  //(4) Load all the worlds and give them a world generator
-    let mut worlds: Vec<World> = config.world_settings.worlds.iter()
-      .map(|world_config| -> Option<World> {
-        //(4a) First we must check if the generator specified in the world-config
-        // is actually loaded
-        if !generator_map.contains_key(&world_config.generator) {
-          error!("Could not find world-generator \"{}\", skipping loading world \"{}\"",
-            world_config.generator, world_config.name
+  /*(4)
+    With the generators we are ready to load/create the actual worlds. Which
+    worlds the server has is specified in the "config.toml" file at the server 
+    root.
+  */
+  info!("Loading saved worlds...");
+
+  let mut worlds: Vec<World> = config.world_settings.worlds.iter()
+    .map(|world_config| -> Option<World> {
+      //(4a) First we must check if the generator specified in the world-config
+      // is actually loaded
+      if !generator_map.contains_key(&world_config.generator) {
+        error!("Could not find world-generator \"{}\", skipping loading world \"{}\"",
+          world_config.generator, world_config.name
+        );
+        return None;
+      }
+
+      //(4b) Generator is present, so let's build the world
+      let generator = generator_map.get(&world_config.generator).unwrap().clone();
+      let mut world_path = PathBuf::from(WORLD_FOLDER);
+      world_path.push(&world_config.file_name);
+
+      match WorldBuilder::build(generator, world_config.name.clone(), world_path) {
+        Ok(world) => Some(world),
+        Err(err) => {
+          error!("Could not initialise world \"{}\"; it will be ignored. Reason: \"{err}\"",
+            &world_config.name
           );
           return None;
         }
-
-        //(4b) Generator is present, so let's build the world
-        let generator = generator_map.get(&world_config.generator).unwrap().clone();
-        match WorldBuilder::build(generator, world_config.name.clone(), &world_config.file_name) {
-          Ok(world) => Some(world),
-          Err(err) => {
-            error!("Could not initialise world \"{}\" (reason:{err}), it will be ignored",
-              &world_config.name
-            );
-            return None;
-          }
-        }
-      })
-      .filter(|world| world.is_some())
-      .map(|some_world| some_world.unwrap())
-      .collect();
+      }
+    })
+    .filter(|world| world.is_some())
+    .map(|some_world| some_world.unwrap())
+    .collect();
 
   //(5) We no longer need the generators. To save memory, we dealloc them
   drop(generator_map);

@@ -22,6 +22,34 @@
   text of the license in any official language of the European Union.
 */
 
+use std::fs::File;
+
+use log::info;
+
+use crate::{
+  WorldGenerator,
+  world_builder::WorldBuilderError
+};
+
+#[derive(Debug)]
 pub struct World {
   
+}
+
+impl World {
+
+  pub fn load(gen: WorldGenerator, file_handle: File, name: String)
+    -> Result<Self, WorldBuilderError>
+  {
+    info!("Loading world \"{name}\"...");
+    todo!()
+  }
+
+  pub fn new(gen: WorldGenerator, file_handle: File, name: String)
+  -> Result<Self, WorldBuilderError>
+  {
+    info!("Creating new world \"{name}\"...");
+    todo!();
+  }
+
 }

@@ -26,7 +26,7 @@ use std::{fmt::Debug, sync::Arc};
 
 use log::info;
 
-use crate::builder_config::BuilderConfig;
+use crate::{builder_config::BuilderConfig, chunk::Chunk};
 
 #[derive(Debug, Clone)]
 pub struct WorldGenerator {
@@ -49,7 +49,8 @@ impl WorldGenerator {
 }
 
 pub trait GenDyLib: Debug {
-
+  fn one_time_init(&mut self);
+  fn gen_chunk(&self, pos: (i32, i32, i16)) -> Chunk;
 }
 
 pub unsafe trait LinkGenDyLib: GenDyLib {
