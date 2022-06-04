@@ -26,7 +26,11 @@ use std::{fs, error::Error};
 
 //Internal deps
 use config::Config;
-use srvr_sysworldgen::{self, WorldGenerator, world_builder::WorldBuilder};
+use srvr_sysworldgen::{
+  self,
+  WorldGenerator,
+  world_builder::WorldBuilder
+};
 
 //External deps
 use tokio::runtime::Builder;
