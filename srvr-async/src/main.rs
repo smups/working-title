@@ -32,7 +32,9 @@ use config::Config;
 use srvr_sysworldgen::{
   self,
   WorldGenerator,
-  generator_builder::GeneratorBuilder
+  generator_builder::GeneratorBuilder,
+  world::World,
+  world_builder::WorldBuilder
 };
 
 //External deps
@@ -89,7 +91,7 @@ fn main() {
     }
   };
 
-  let builders: Vec<WorldGenerator> = builder_folder.into_iter()
+  let generators: Vec<WorldGenerator> = builder_folder.into_iter()
     .filter(|entry| entry.is_ok())
     .filter(|entry| entry.as_ref().unwrap().path().is_dir())
     .map(|entry| entry.unwrap().path())
@@ -108,11 +110,40 @@ fn main() {
     .collect();
 
   //Put all the builders in a hashmap with their name
-  let mut builder_map: HashMap<String, WorldGenerator> = builders.into_iter()
-    .map(|builder| (builder.get_name(), builder))
+  let generator_map: HashMap<String, WorldGenerator> = generators.into_iter()
+    .map(|gen| (gen.get_name(), gen))
     .collect();
 
   //(4) Load all the worlds and give them a world generator
+    let mut worlds: Vec<World> = config.world_settings.worlds.iter()
+      .map(|world_config| -> Option<World> {
+        //(4a) First we must check if the generator specified in the world-config
+        // is actually loaded
+        if !generator_map.contains_key(&world_config.generator) {
+          error!("Could not find world-generator \"{}\", skipping loading world \"{}\"",
+            world_config.generator, world_config.name
+          );
+          return None;
+        }
+
+        //(4b) Generator is present, so let's build the world
+        let generator = generator_map.get(&world_config.generator).unwrap().clone();
+        match WorldBuilder::build(generator, world_config.name.clone(), &world_config.file_name) {
+          Ok(world) => Some(world),
+          Err(err) => {
+            error!("Could not initialise world \"{}\" (reason:{err}), it will be ignored",
+              &world_config.name
+            );
+            return None;
+          }
+        }
+      })
+      .filter(|world| world.is_some())
+      .map(|some_world| some_world.unwrap())
+      .collect();
+
+  //(5) We no longer need the generators. To save memory, we dealloc them
+  drop(generator_map);
 
   //(3) Set-up the async threadpool
   let runtime = match Builder::new_multi_thread()

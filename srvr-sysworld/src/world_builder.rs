@@ -22,16 +22,39 @@
   text of the license in any official language of the European Union.
 */
 
-//Modules
-mod builder_config;
-mod world_gen;
+use std::{
+  error::Error,
+  fmt::{Display, Formatter, self}
+};
 
-#[cfg(feature="world_builder")]
-pub mod generator_builder;
-#[cfg(feature="world_builder")]
-pub mod world_builder;
-#[cfg(feature="world_builder")]
-pub mod world;
+use crate::{world::World, WorldGenerator};
 
-#[cfg(feature="worldgen")]
-pub use world_gen::*;
+#[derive(Debug)]
+pub struct WorldBuilder;
+
+impl WorldBuilder {
+  pub fn build(gen: WorldGenerator, world_name: String, file_name: &str)
+    -> Result<World, WorldBuilderError>
+  {
+    todo!()
+  }
+}
+
+
+#[derive(Debug)]
+pub struct WorldBuilderError(String);
+type WBErr = WorldBuilderError;
+
+impl From<String> for WBErr {
+  fn from(msg: String) -> Self { Self(msg) }
+}
+impl From<&str> for WBErr {
+  fn from(msg: &str) -> Self { Self(msg.to_string()) }
+}
+
+impl Error for WBErr {}
+impl Display for WBErr {
+  fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+    write!(f, "{}", self.0)
+  }
+}

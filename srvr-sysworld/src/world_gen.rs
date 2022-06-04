@@ -22,18 +22,18 @@
   text of the license in any official language of the European Union.
 */
 
-use std::fmt::Debug;
+use std::{fmt::Debug, sync::Arc};
 
 use log::info;
 
 use crate::builder_config::BuilderConfig;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct WorldGenerator {
   name: String,
   id: u32,
   config: BuilderConfig,
-  generator: Box<dyn GenDyLib>
+  generator: Arc<Box<dyn GenDyLib>>
 }
 
 impl WorldGenerator {
@@ -43,7 +43,7 @@ impl WorldGenerator {
       name: config.general.name.clone(),
       id: config.general.id,
       config: config,
-      generator: generator
+      generator: Arc::new(generator)
     }
   }
 
