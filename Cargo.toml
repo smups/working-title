@@ -27,6 +27,7 @@ members = [
     "srvr-async",
     "srvr-sysplugin",
     "srvr-sysproto",
+    "srvr-sysdata",
     "srvr-sysworld",
     #"srvr-sysnbt",
     #Default plugins
