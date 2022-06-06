@@ -34,6 +34,9 @@
   are located in the scripts folder.
 */
 
+#![allow(dead_code)]
+#![allow(unreachable_patterns)]
+
 //Container for generated code
 pub mod generated;
 

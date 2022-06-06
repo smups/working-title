@@ -23,6 +23,8 @@
 import json
 import re
 
+from numpy import block
+
 #Global vars
 BLOCK_DATA = "../data/blocks.json"
 TARGET_FILE = "../src/generated/block.rs"
@@ -208,7 +210,7 @@ def generate_complex_struct(unparsed_name: str, block_name: str, properties, val
   struct += f"  fn get_id(&self) -> u16 {{ match self {{\n"
   for config in values:
     id = int(config['id'])
-    struct += "    ("
+    struct += f"    {block_name}("
     for property, value in config['properties'].items():
       if next(iter(value)).isdigit():
         #numeric property!
@@ -220,7 +222,7 @@ def generate_complex_struct(unparsed_name: str, block_name: str, properties, val
   struct += "    _ => panic!(\"Invalid block state\")\n  }}\n"
   struct += f"  fn get_name(&self) -> &'static str {{ match self {{\n"
   for config in values:
-    struct += "    ("
+    struct += f"    {block_name}("
     for property, value in config['properties'].items():
       if next(iter(value)).isdigit():
         #numeric property!

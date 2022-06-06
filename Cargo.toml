@@ -35,3 +35,30 @@ members = [
     #Default world generators
     "srvr-wgsuperflat"
 ]
+
+
+[profile.rust-analyzer]
+inherits = "dev"
+opt-level = 0
+
+# Using cargo flamegraph, this is needed.
+# See more: https://github.com/flamegraph-rs/flamegraph
+[profile.release]
+debug = true
+
+[profile.dev]
+opt-level = 2
+lto = false
+
+[profile.bench]
+opt-level = 2
+
+# Used when we make our final binary.
+[profile.deploy]
+inherits = "release"
+opt-level = 3
+lto = true
+debug = false
+
+[profile.tarpaulin]
+inherits = "rust-analyzer"
