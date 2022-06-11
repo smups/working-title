@@ -201,7 +201,6 @@ def generate_complex_struct(unparsed_name: str, block_name: str, properties, val
   tuples = []
   for prop in iter(properties):
     tuples.append(parse_name(prop))
-  
   struct = "#[derive(Debug, Clone, PartialEq, Eq)]\n"
   struct += f"pub struct {block_name}("
   for tup in tuples: struct += f"{tup}, "
