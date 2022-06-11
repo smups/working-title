@@ -33,11 +33,18 @@ use libloading::{Library, Symbol};
 use crate::{
   WorldGenerator,
   builder_config::BuilderConfig,
+  BoxedGenDyLib,
   GenDyLib
 };
 
 const WORLD: &'static str = "world.toml";
 //const BIOME: &'static str = "biome.toml"; <- don't need this for now
+
+/*
+  We have to keep the stupid libraries in scope to not fuck up the pointers of
+  the plugins to their vtables. (APPARENTLY)
+*/
+static mut LOADED_PLUGINS: Vec<Library> = Vec::new();
 
 type GBErr = GeneratorBuilderError;
 
@@ -51,7 +58,15 @@ impl GeneratorBuilder {
 
     //(2) Try to link to the generator dynamic library
     let dylib_path = Self::get_lib_path(settings_folder, &settings.general.dylib_generator);
-    let dylib = Self::link_generator(dylib_path)?;
+    let mut dylib = Self::link_generator(dylib_path)?;
+
+
+    /*(3)
+      We run the one-time setup of the world generator. This is unsafe since
+      there may be multiple instances of a world generator pointing to the same
+      vtable (on different threads too!).
+    */
+    unsafe { dylib.one_time_init(); }
 
     Ok(WorldGenerator::new(settings, dylib))
   }
@@ -94,7 +109,7 @@ impl GeneratorBuilder {
     folder
   }
 
-  fn link_generator(dylib_file: PathBuf) -> Result<Box<dyn GenDyLib>, GBErr> {
+  fn link_generator(dylib_file: PathBuf) -> Result<BoxedGenDyLib<'static>, GBErr> {
     //(1) Try to load the dynamic library (eek)
     let lib = match unsafe {Library::new(dylib_file)} {
       Ok(dylib) => dylib,
@@ -102,15 +117,26 @@ impl GeneratorBuilder {
     };
 
     //(2) Try to link against the dylib
-    let linker: Symbol<extern "Rust" fn() -> Box<dyn GenDyLib>> = match unsafe {
+    let linker: Symbol<unsafe extern "Rust" fn() -> *mut ()> = match unsafe {
       lib.get(b"link\0")
     } {
       Ok(linker) => linker,
       Err(err) => return Err(format!("could not link to generator dylib. Error\"{err}\"").into())
     };
 
-    //(3) Try to run the linker and return (this sometimes segfaults. Oh well.)
-    Ok(linker())
+    //(4) Run the linker and return
+    let link = unsafe {
+      let ptr = linker();
+      Ok(BoxedGenDyLib::from_raw(ptr)) // <- EXTREMELY UNSAFE VOID PTR CAST
+    };
+
+    //(5) the dynamic library in a global static variable to prevent
+    //invalidating the vtables of the trait objects (:c)
+    unsafe {
+      LOADED_PLUGINS.push(lib);
+    }
+
+    return link;
   }
 
 }

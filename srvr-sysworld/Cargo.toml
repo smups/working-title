@@ -10,6 +10,7 @@ worldgen = []
 
 [dependencies]
 serde = {version="*", features=['derive']}
+thin_trait_object = "1"
 toml = "*"
 libloading = "*"
 log = "*"

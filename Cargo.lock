@@ -360,6 +360,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "replace_with"
+version = "0.1.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e3a8614ee435691de62bcffcf4a66d91b3594bf1428a5722e79103249a095690"
+
+[[package]]
 name = "ryu"
 version = "1.0.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -504,6 +510,7 @@ dependencies = [
  "libloading",
  "log",
  "serde",
+ "thin_trait_object",
  "toml",
 ]
 
@@ -524,6 +531,19 @@ dependencies = [
  "proc-macro2",
  "quote",
  "unicode-ident",
+]
+
+[[package]]
+name = "thin_trait_object"
+version = "1.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e8488bcadd543cb17d3e229b3faa86a2c920889ba7dfe2e477a8f8e77a427210"
+dependencies = [
+ "once_cell",
+ "proc-macro2",
+ "quote",
+ "replace_with",
+ "syn",
 ]
 
 [[package]]

@@ -4,28 +4,28 @@ use srvr_sysworldgen::{
   chunk::Chunk
 };
 
-use log::info;
+const GENERATOR_ID: u8 = 0x00;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct SuperFlatGenerator {
-
+  id: u8
 }
 
 impl GenDyLib for SuperFlatGenerator {
-  fn one_time_init(&mut self) {
-    todo!()
+  
+  unsafe fn one_time_init(&mut self) {
+    println!("Hello World!");
   }
 
-  fn gen_chunk(&self, pos: (i32, i32, i16)) ->Chunk {
-    todo!()
+  fn gen_chunk(&self, pos: (i32, i32, i16)) -> Chunk {
+    Chunk {  }
   }
 }
 
 impl SuperFlatGenerator {
   pub fn new() -> Self {
-    info!("Hello!");
-    println!("dis is worldbuld");
-    SuperFlatGenerator {}
+    println!("linklink");
+    SuperFlatGenerator { id: GENERATOR_ID }
   }
 }
 

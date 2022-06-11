@@ -81,7 +81,6 @@ fn main() {
   };
   let config = config::copy_config();
 
-
   /* (3)
     Now we load and link the world generator binaries. This has to be done BEFORE
     the worlds themselves are initialized, as they may not exist yet and therefore
@@ -184,7 +183,7 @@ fn main() {
   //(4) Load plugins (oof!)
 
   //(5) Start Runtime
-  runtime.block_on(async {
+  runtime.block_on( async {
     match srvr_manager::Main::init().await {
       Ok(mut srvr) => {
         //(6) Initialise the Console

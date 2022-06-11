@@ -22,49 +22,75 @@
   text of the license in any official language of the European Union.
 */
 
-use std::{fmt::Debug, sync::Arc};
+use std::mem::ManuallyDrop;
 
+use thin_trait_object::*;
 use log::info;
 
 use crate::{builder_config::BuilderConfig, chunk::Chunk};
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct WorldGenerator {
   name: String,
   config: BuilderConfig,
-  generator: Arc<Box<dyn GenDyLib>>
+  generator: BoxedGenDyLib<'static>
 }
 
 impl WorldGenerator {
-  pub fn new(config: BuilderConfig, generator: Box<dyn GenDyLib>) -> Self {
+
+  pub fn new(config: BuilderConfig, generator: BoxedGenDyLib<'static>) -> Self {
     info!("Linked to world generator \"{}\"", config.general.name);
     WorldGenerator {
       name: config.general.name.clone(),
       config: config,
-      generator: Arc::new(generator)
+      generator: generator
     }
+
   }
 
   pub fn get_name(&self) -> String {self.name.clone()}
+
 }
 
-pub trait GenDyLib: Debug {
-  fn one_time_init(&mut self);
+#[thin_trait_object]
+pub trait GenDyLib {
+  unsafe fn one_time_init(&mut self);
   fn gen_chunk(&self, pos: (i32, i32, i16)) -> Chunk;
 }
 
-pub unsafe trait LinkGenDyLib: GenDyLib {
-  unsafe extern "Rust" fn link() -> Box<dyn GenDyLib>;
+impl Clone for BoxedGenDyLib<'static> {
+  fn clone(&self) -> Self {
+    /*
+      So, this code is super cursed and wrong and leaks memory. Then again, that
+      is probably ok in this case.
+      
+      We're basically cloning the raw pointer to the vtable of this particular
+      GenDyLib trait object. These vtables are stored in a static global variable
+      (hey, that's cursed too!) and are never dropped (well, not before the
+      programme ends). Therefore, it's essentially always ok to create new pointers
+      to these vtables, as long as none of these pointers deallocate the vtable
+      (that would break everything).
+    */
+    unsafe {
+      let ptr: *mut () = self.as_raw(); // <- WARNING VOID PTR
+      let mut do_not_drop = ManuallyDrop::new(BoxedGenDyLib::from_raw(ptr));
+      ManuallyDrop::take(&mut do_not_drop) // <- WARNING MEMORY LEAK
+    }
+  }
+}
+
+pub unsafe trait LinkGenDyLib: GenDyLib + Clone {
+  unsafe extern "Rust" fn link() -> *mut ();
 }
 
 #[macro_export]
 macro_rules! link_generator {
   ($generator:ident) => {
-    use srvr_sysworldgen::LinkGenDyLib;
+    use srvr_sysworldgen::{LinkGenDyLib, BoxedGenDyLib};
     unsafe impl LinkGenDyLib for $generator {
       #[no_mangle]
-      unsafe extern "Rust" fn link() -> Box<dyn GenDyLib> {
-        Box::new($generator::new())
+      unsafe extern "Rust" fn link() -> *mut () {
+        BoxedGenDyLib::new($generator::new()).into_raw()
       }
     }
   };

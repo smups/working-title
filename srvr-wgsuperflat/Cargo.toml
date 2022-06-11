@@ -11,4 +11,4 @@ log = "*"
 
 [lib]
 name = "overworld_generator"
-crate-type = ["dylib"]
+crate-type = ["cdylib"]
