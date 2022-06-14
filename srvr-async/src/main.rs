@@ -23,20 +23,22 @@
 */
 
 use std::{
-  fs,
-  collections::HashMap, path::{PathBuf, Path}
+  path::{PathBuf, Path}
 };
 
 //Internal deps
 use config::Config;
 
-use srvr_sysworld::worldgen::generator_manager::WorldGeneratorManager;
+use srvr_sysworld::{
+  worldgen::generator_manager::WorldGeneratorManager,
+  world_builder::WorldBuilder,
+  world::World
+};
+
 //External deps
 use tokio::runtime::Builder;
 pub use log::*;
 pub use semver::Version;
-
-use crate::config::World;
 
 //Private modules
 mod logger;
@@ -130,10 +132,7 @@ fn main() {
     .map(|some_world| some_world.unwrap())
     .collect();
 
-  //(5) We no longer need the generators. To save memory, we dealloc them
-  drop(generator_map);
-
-  //(3) Set-up the async threadpool
+  //(5) Set-up the async threadpool
   let runtime = match Builder::new_multi_thread()
     .worker_threads(config.general_settings.async_workers)
     .max_blocking_threads(config.general_settings.blocking_workers)

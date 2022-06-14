@@ -27,8 +27,8 @@ use std::fs::File;
 use log::info;
 
 use crate::{
-  WorldGenerator,
-  world_builder::WorldBuilderError
+  world_builder::WorldBuilderError,
+  worldgen::generator_api::BoxedWorldGenerator
 };
 
 #[derive(Debug)]
@@ -38,14 +38,14 @@ pub struct World {
 
 impl World {
 
-  pub fn load(gen: WorldGenerator, file_handle: File, name: String)
+  pub fn load(gen: BoxedWorldGenerator, file_handle: File, name: String)
     -> Result<Self, WorldBuilderError>
   {
     info!("Loading world \"{name}\"...");
     todo!()
   }
 
-  pub fn new(gen: WorldGenerator, file_handle: File, name: String)
+  pub fn new(gen: BoxedWorldGenerator, file_handle: File, name: String)
   -> Result<Self, WorldBuilderError>
   {
     info!("Creating new world \"{name}\"...");

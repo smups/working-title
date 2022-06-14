@@ -30,7 +30,9 @@ use std::{
 
 use log::{info, error};
 
-use crate::{world::World, WorldGenerator};
+use crate::{world::World,
+  worldgen::generator_api::BoxedWorldGenerator
+};
 
 const WORLD_FILE_EXT: &'static str = ".srvrsave";
 
@@ -38,7 +40,7 @@ const WORLD_FILE_EXT: &'static str = ".srvrsave";
 pub struct WorldBuilder;
 
 impl WorldBuilder {
-  pub fn build(gen: WorldGenerator, world_name: String, mut save_folder: PathBuf)
+  pub fn build(gen: BoxedWorldGenerator, world_name: String, mut save_folder: PathBuf)
     -> Result<World, WorldBuilderError>
   {
     //(1) Create the save folder if it does not exist
