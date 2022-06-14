@@ -4,8 +4,8 @@ version = "0.1.0"
 edition = "2021"
 
 [features]
-default = ["world_builder"]
-world_builder = []
+default = ["worldgen", "world_gen_api"]
+world_gen_api = []
 worldgen = []
 
 [dependencies]

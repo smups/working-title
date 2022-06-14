@@ -24,23 +24,19 @@
 
 use std::{
   fs,
-  collections::HashMap, path::PathBuf
+  collections::HashMap, path::{PathBuf, Path}
 };
 
 //Internal deps
 use config::Config;
-use srvr_sysworld::{
-  self,
-  WorldGenerator,
-  generator_builder::GeneratorBuilder,
-  world::World,
-  world_builder::WorldBuilder
-};
 
+use srvr_sysworld::worldgen::generator_manager::WorldGeneratorManager;
 //External deps
 use tokio::runtime::Builder;
 pub use log::*;
 pub use semver::Version;
+
+use crate::config::World;
 
 //Private modules
 mod logger;
@@ -60,7 +56,7 @@ pub const LOG_FOLDER: &'static str = "./logs";
 pub const PLUGIN_FOLDER: &'static str = "./plugins";
 pub const CONFIG_FILE: &'static str = "./config.toml";
 pub const WORLD_FOLDER: &'static str = "./world";
-pub const WORLD_BUILDER_FOLDER: &'static str = "./world/generators";
+pub const WORLD_GEN_FOLDER: &'static str = "./world/generators";
 
 //Public configuration file
 pub static mut CONFIG: Option<Config> = None;
@@ -75,7 +71,7 @@ fn main() {
       info!("Finished loading config file");
       unsafe { CONFIG = Some(config) }
     } Err(err) => {
-      error!("Could not parse config file (reason: \"{}\"). Shutting down...", err);
+      error!("Could not parse config file (reason: \"{err}\"). Shutting down...");
       return;
     }
   };
@@ -87,40 +83,13 @@ fn main() {
     require world generation before we can start the server.
   */
   info!("Loading worldbuilders...");
-
-  //(3a) The generators are inside folders. We traverse the root world gen folder
-  //to find all world generators
-  let gen_folder = match fs::read_dir(WORLD_BUILDER_FOLDER) {
-    Ok(folder) => folder,
+  let world_gen_mngr = match WorldGeneratorManager::new(Path::new(WORLD_GEN_FOLDER)) {
+    Ok(generators) => generators,
     Err(err) => {
-      error!("Could not open worldbuilder folder (reason: \"{err}\"");
+      error!("Could not start worldgen manager (reason: \"{err}\"). Shutting down...");
       return;
     }
   };
-
-  //(3b) Next we turn the contents of the worldgen folders into actual generators
-  let generators: Vec<WorldGenerator> = gen_folder.into_iter()
-    .filter(|entry| entry.is_ok())
-    .filter(|entry| entry.as_ref().unwrap().path().is_dir())
-    .map(|entry| entry.unwrap().path())
-    .map(|path| -> Option<WorldGenerator> {
-      let generator = GeneratorBuilder::build(path.clone());
-      match generator {
-        Ok(generator) => Some(generator),
-        Err(err) => {
-          warn!("Could not create generator from folder {path:#?}. Reason: \"{err}\"");
-          None
-        }
-      }
-    })
-    .filter(|builder| builder.is_some())
-    .map(|builder| builder.unwrap())
-    .collect();
-
-  //(3c) Finally we add all the generators to a hashmap
-  let generator_map: HashMap<String, WorldGenerator> = generators.into_iter()
-    .map(|gen| (gen.get_name(), gen))
-    .collect();
 
   /*(4)
     With the generators we are ready to load/create the actual worlds. Which
@@ -133,15 +102,17 @@ fn main() {
     .map(|world_config| -> Option<World> {
       //(4a) First we must check if the generator specified in the world-config
       // is actually loaded
-      if !generator_map.contains_key(&world_config.generator) {
-        error!("Could not find world-generator \"{}\", skipping loading world \"{}\"",
+      let generator = match world_gen_mngr.get_generator(&world_config.generator) {
+        Some(generator) => generator,
+        None => {
+          error!("Could not find world-generator \"{}\", skipping loading world \"{}\"",
           world_config.generator, world_config.name
         );
         return None;
-      }
+        }
+      };
 
       //(4b) Generator is present, so let's build the world
-      let generator = generator_map.get(&world_config.generator).unwrap().clone();
       let mut world_path = PathBuf::from(WORLD_FOLDER);
       world_path.push(&world_config.file_name);
 

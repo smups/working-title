@@ -1,6 +1,6 @@
 use srvr_sysworld::{
-  GenDyLib,
   link_generator,
+  worldgen::generator_api::*,
   chunk::Chunk
 };
 
@@ -11,9 +11,9 @@ pub struct SuperFlatGenerator {
   id: u8
 }
 
-impl GenDyLib for SuperFlatGenerator {
+impl WorldGenerator for SuperFlatGenerator {
   
-  unsafe fn one_time_init(&mut self) {
+  fn one_time_init(&mut self) {
     println!("Hello World!");
   }
 

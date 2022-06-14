@@ -46,14 +46,24 @@
 //!   will be loaded by srvr on startup.
 //! - **World Generation Library Manager** the worldgen libs are not self-contained
 //! after they are loaded. This is because the worldgen libs provide a ffi
-//! function to generate an instance of a `DynamicGenerator` thin trait object.
+//! function to generate an instance of a `BoxedWorldGenerator` thin trait object.
 //! The vtables for these thin trait objects must be stored somewhere. Right now,
 //! they're stored as static variables in the plugin binaries. Hence the binaries
 //! must not be de-allocated before all instances are dropped. This is the job of
 //! the world generation library manager.
 //! - **World Generators** finally we have the actual world generators themselves.
-//! These are just instances of the `DynamicGenerator` trait object 
+//! These are just instances of the `BoxedWorldGenerator` trait object. They provide
+//! the actual implementation of the `WorldGenerator` trait.
 
-mod world_generator;
-mod generator_api;
-mod generator_manager;
+
+//Modules required to build srvr
+#[cfg(feature="worldgen")]
+pub mod world_generator;
+#[cfg(feature="worldgen")]
+pub mod generator_manager;
+#[cfg(feature="worldgen")]
+pub mod generator_config;
+
+//Modules required to build a world-generator plugin
+#[cfg(feature="world_gen_api")]
+pub mod generator_api;

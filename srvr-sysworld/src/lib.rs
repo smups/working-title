@@ -22,21 +22,11 @@
   text of the license in any official language of the European Union.
 */
 
-//Modules
-mod builder_config;
-mod world_gen;
-
-pub mod worldgen;
-
+//Modules that are always needed
+pub mod worldgen; //<- might be empty, depends on features
 pub mod chunk;
-//pub mod generator_manager;
-
-#[cfg(feature="world_builder")]
-pub mod generator_builder;
-#[cfg(feature="world_builder")]
-pub mod world_builder;
-#[cfg(feature="world_builder")]
-pub mod world;
 
 #[cfg(feature="worldgen")]
-pub use world_gen::*;
+pub mod world_builder;
+#[cfg(feature="worldgen")]
+pub mod world;
