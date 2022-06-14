@@ -32,7 +32,7 @@ use libloading::{Library, Symbol};
 
 use crate::{
   WorldGenerator,
-  builder_config::BuilderConfig,
+  builder_config::WorldGenConfig,
   BoxedGenDyLib,
   GenDyLib
 };
@@ -45,6 +45,7 @@ const WORLD: &'static str = "world.toml";
   the plugins to their vtables. (APPARENTLY)
 */
 static mut LOADED_PLUGINS: Vec<Library> = Vec::new();
+static mut LOADED_GENERATORS: Vec<WorldGenerator> = Vec::new();
 
 type GBErr = GeneratorBuilderError;
 
@@ -71,7 +72,7 @@ impl GeneratorBuilder {
     Ok(WorldGenerator::new(settings, dylib))
   }
 
-  fn get_settings(settings_folder: PathBuf) -> Result<BuilderConfig, GBErr> {
+  fn get_settings(settings_folder: PathBuf) -> Result<WorldGenConfig, GBErr> {
     //(1) Try to open the config file
     let mut world_settings_path = settings_folder;
     world_settings_path.push(WORLD);
@@ -90,7 +91,7 @@ impl GeneratorBuilder {
     }
 
     //(3) Try to parse the config file
-    match toml::from_str::<BuilderConfig>(&config_string) {
+    match toml::from_str::<WorldGenConfig>(&config_string) {
       Ok(config) => Ok(config),
       Err(err) => Err(format!("could not parse {WORLD} file. Error: \"{err}\"").into())
     }

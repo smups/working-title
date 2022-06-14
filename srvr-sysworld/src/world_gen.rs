@@ -27,18 +27,18 @@ use std::mem::ManuallyDrop;
 use thin_trait_object::*;
 use log::info;
 
-use crate::{builder_config::BuilderConfig, chunk::Chunk};
+use crate::{builder_config::WorldGenConfig, chunk::Chunk};
 
 #[derive(Clone)]
 pub struct WorldGenerator {
   name: String,
-  config: BuilderConfig,
+  config: WorldGenConfig,
   generator: BoxedGenDyLib<'static>
 }
 
 impl WorldGenerator {
 
-  pub fn new(config: BuilderConfig, generator: BoxedGenDyLib<'static>) -> Self {
+  pub fn new(config: WorldGenConfig, generator: BoxedGenDyLib<'static>) -> Self {
     info!("Linked to world generator \"{}\"", config.general.name);
     WorldGenerator {
       name: config.general.name.clone(),
@@ -77,21 +77,4 @@ impl Clone for BoxedGenDyLib<'static> {
       ManuallyDrop::take(&mut do_not_drop) // <- WARNING MEMORY LEAK
     }
   }
-}
-
-pub unsafe trait LinkGenDyLib: GenDyLib + Clone {
-  unsafe extern "Rust" fn link() -> *mut ();
-}
-
-#[macro_export]
-macro_rules! link_generator {
-  ($generator:ident) => {
-    use srvr_sysworldgen::{LinkGenDyLib, BoxedGenDyLib};
-    unsafe impl LinkGenDyLib for $generator {
-      #[no_mangle]
-      unsafe extern "Rust" fn link() -> *mut () {
-        BoxedGenDyLib::new($generator::new()).into_raw()
-      }
-    }
-  };
 }

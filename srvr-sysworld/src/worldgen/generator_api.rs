@@ -22,36 +22,36 @@
   text of the license in any official language of the European Union.
 */
 
-use serde::{Serialize, Deserialize};
+use std::fmt::Debug;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct WorldGenConfig {
-  pub general: GeneralSettings,
-  pub world_gen: WorldGenSettings
+use thin_trait_object::thin_trait_object;
+
+use crate::chunk::Chunk;
+
+#[thin_trait_object]
+pub trait WorldGenerator: Debug {
+  fn one_time_init(&mut self);
+  fn gen_chunk(&self, pos: (i32, i32, i16)) -> Chunk;
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GeneralSettings {
-  pub id: u32,
-  pub name: String,
-  pub dylib_generator: String
+/*
+  Trait implemented by generators
+*/
+pub unsafe trait LinkGeneratorDyLib: GenDyLib + Clone {
+  unsafe extern "Rust" fn link() -> *mut ();
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct WorldGenSettings {
-  pub ambient_light: f32,
-  pub bed_works: bool,
-  pub coordinate_scale: f64,
-  pub effects: String,
-  pub has_ceiling: bool,
-  pub has_raids: bool,
-  pub has_skylight: bool,
-  pub height: i32,
-  pub min_y: i32,
-  pub infiniburn: String,
-  pub local_height: i32,
-  pub natural: bool,
-  pub piglin_safe: bool,
-  pub respawn_anchor_works: bool,
-  pub ultrawarm: bool
+#[macro_export]
+macro_rules! link_generator {
+  ($generator:ident) => {
+    use srvr_sysworld::worldgen::generator_api::{
+      LinkGeneratorDyLib, BoxedWorldGenerator
+    };
+    unsafe impl LinkGeneratorDyLib for $generator {
+      #[no_mangle]
+      unsafe extern "Rust" fn link() -> *mut () {
+        BoxedWorldGenerator::new($generator::new()).into_raw()
+      }
+    }
+  };
 }

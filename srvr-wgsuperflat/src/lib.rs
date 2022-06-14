@@ -1,4 +1,4 @@
-use srvr_sysworldgen::{
+use srvr_sysworld::{
   GenDyLib,
   link_generator,
   chunk::Chunk

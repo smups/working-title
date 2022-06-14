@@ -29,7 +29,7 @@ use std::{
 
 //Internal deps
 use config::Config;
-use srvr_sysworldgen::{
+use srvr_sysworld::{
   self,
   WorldGenerator,
   generator_builder::GeneratorBuilder,

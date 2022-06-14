@@ -477,7 +477,7 @@ dependencies = [
  "serde",
  "srvr-sysplugin",
  "srvr-sysproto",
- "srvr-sysworldgen",
+ "srvr-sysworld",
  "time 0.3.9",
  "tokio",
  "toml",
@@ -504,7 +504,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "srvr-sysworldgen"
+name = "srvr-sysworld"
 version = "0.1.0"
 dependencies = [
  "libloading",
@@ -519,7 +519,7 @@ name = "srvr-wgsuperflat"
 version = "0.1.0"
 dependencies = [
  "log",
- "srvr-sysworldgen",
+ "srvr-sysworld",
 ]
 
 [[package]]

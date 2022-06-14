@@ -22,36 +22,27 @@
   text of the license in any official language of the European Union.
 */
 
-use serde::{Serialize, Deserialize};
+use std::alloc::{Layout, self};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct WorldGenConfig {
-  pub general: GeneralSettings,
-  pub world_gen: WorldGenSettings
+use alloc::alloc;
+
+struct WorldGenerator {
+  data: *mut (),
+  data_layout: Layout,
+  vtable: *const GeneratorVTable
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GeneralSettings {
-  pub id: u32,
-  pub name: String,
-  pub dylib_generator: String
+impl Drop for WorldGenerator {
+  fn drop(&mut self) {
+    //We de-allocate the data and leave the vtable alone
+    let data = self.data as *mut u8;
+    unsafe { alloc::dealloc(data, self.data_layout); }
+    drop(self.data_layout);
+  }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct WorldGenSettings {
-  pub ambient_light: f32,
-  pub bed_works: bool,
-  pub coordinate_scale: f64,
-  pub effects: String,
-  pub has_ceiling: bool,
-  pub has_raids: bool,
-  pub has_skylight: bool,
-  pub height: i32,
-  pub min_y: i32,
-  pub infiniburn: String,
-  pub local_height: i32,
-  pub natural: bool,
-  pub piglin_safe: bool,
-  pub respawn_anchor_works: bool,
-  pub ultrawarm: bool
+struct GeneratorVTable {
+
 }
+
+struct SimpleGenerator(u128);

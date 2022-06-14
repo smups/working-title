@@ -6,7 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-srvr-sysworldgen = {path="../srvr-sysworld", version="*", features=['worldgen']}
+srvr-sysworld = {path="../srvr-sysworld", version="*", features=['worldgen']}
 log = "*"
 
 [lib]

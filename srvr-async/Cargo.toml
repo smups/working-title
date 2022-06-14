@@ -31,7 +31,7 @@ edition = "2021"
 #srvr dependencies
 srvr-sysplugin = {path="../srvr-sysplugin", version="*" }
 srvr-sysproto = {path="../srvr-sysproto", version="*"}
-srvr-sysworldgen = {path="../srvr-sysworld", version="*"}
+srvr-sysworld = {path="../srvr-sysworld", version="*"}
 
 #Nice utility for dealing with versions
 semver = "*"

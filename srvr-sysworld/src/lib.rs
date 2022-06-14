@@ -26,7 +26,10 @@
 mod builder_config;
 mod world_gen;
 
+pub mod worldgen;
+
 pub mod chunk;
+//pub mod generator_manager;
 
 #[cfg(feature="world_builder")]
 pub mod generator_builder;
